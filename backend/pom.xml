@@ -2,40 +2,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-<<<<<<< HEAD
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.13</version>
-		<relativePath/> <!-- lookup parent from repository -->
-	</parent>
-	<groupId>com.group25</groupId>
-	<artifactId>backend</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>backend</name>
-	<description/>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
-	<properties>
-		<java.version>17</java.version>
-	</properties>
-=======
 	
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.2.5</version> <relativePath/> </parent>
+		<version>3.2.5</version> 
+		<relativePath/> 
+	</parent>
 	
 	<groupId>com.example</groupId>
 	<artifactId>backend</artifactId>
@@ -47,7 +20,6 @@
 		<java.version>17</java.version>
 	</properties>
 	
->>>>>>> 87e6f92 (Assigment2 customer part)
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -56,8 +28,6 @@
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-<<<<<<< HEAD
-=======
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 
@@ -69,7 +39,6 @@
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
->>>>>>> 87e6f92 (Assigment2 customer part)
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
@@ -84,8 +53,4 @@
 		</plugins>
 	</build>
 
-<<<<<<< HEAD
 </project>
-=======
-</project>
->>>>>>> 87e6f92 (Assigment2 customer part)
