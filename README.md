@@ -17,7 +17,11 @@
 下载完成之后,在backend/src 文件夹下,main/java负责写代码，main/resources用于数据库，test用于单元测试。
 
 
+
+
+
 测试部分
+
 请大家按照以下步骤在自己电脑上跑通系统：
 
 打开终端，执行 git pull origin main 拉取最新代码。
