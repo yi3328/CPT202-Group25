@@ -15,3 +15,21 @@
 在终端如果是 Windows，输入 mvnw spring-boot:run；如果是 Mac，输入 ./mvnw spring-boot:run下载依赖
 
 下载完成之后,在backend/src 文件夹下,main/java负责写代码，main/resources用于数据库，test用于单元测试。
+
+
+测试部分
+请大家按照以下步骤在自己电脑上跑通系统：
+
+打开终端，执行 git pull origin main 拉取最新代码。
+
+打开你们自己的 MySQL Workbench。
+
+点击顶部菜单栏的 Server -> Data Import。
+
+选择 Import from Self-Contained File，然后点击后面的 ... 选择代码文件夹里的 backend/specialist_hub_backup.sql 文件。
+
+点击右下角的 Start Import。
+
+导入成功后，用 VS Code 打开 backend 文件夹，在终端运行 .\mvnw clean spring-boot:run（Mac 用 ./mvnw）启动后端服务。
+
+用浏览器双击打开 frontend/login.html 就可以开始测试了！(测试账号可以用 CUST001 到 CUST020，密码统一是 123456)
