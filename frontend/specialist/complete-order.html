@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Management | Specialist Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0F172A;
+            color: #F8FAFC;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-10">
+    <div class="max-w-5xl mx-auto">
+        <h2 class="text-3xl font-extrabold mb-10 tracking-tight">Appointment Orders</h2>
+        <div id="orderContainer" class="space-y-5"></div>
+    </div>
+
+    <script>
+        const orderData = [
+            {
+                id: 1,
+                customerName: "Alice Johnson",
+                timeSlot: "09:00 - 09:30",
+                status: "Confirmed",
+                isTimeOver: false
+            },
+            {
+                id: 2,
+                customerName: "Bob Smith",
+                timeSlot: "10:00 - 10:30",
+                status: "Confirmed",
+                isTimeOver: true
+            },
+            {
+                id: 3,
+                customerName: "Charlie Brown",
+                timeSlot: "14:00 - 14:30",
+                status: "Completed",
+                isTimeOver: true
+            }
+        ];
+
+        window.onload = function() {
+            renderOrderList();
+        };
+
+        function renderOrderList() {
+            const container = document.getElementById("orderContainer");
+            container.innerHTML = "";
+
+            orderData.forEach(order => {
+                let buttonDom = "";
+                if(order.status === "Confirmed") {
+                    if(order.isTimeOver) {
+                        buttonDom = `<button onclick="markCompleted(${order.id})" class="px-5 py-2 bg-sky-500 hover:bg-sky-400 rounded-lg font-bold text-slate-900 transition">Mark as Completed</button>`;
+                    } else {
+                        buttonDom = `<button disabled class="px-5 py-2 bg-slate-600 rounded-lg font-bold text-slate-300 cursor-not-allowed">Mark as Completed</button>`;
+                    }
+                }
+
+                const item = `
+                    <div class="glass-panel rounded-2xl p-6">
+                        <p class="text-slate-300 mb-2"><strong>Customer:</strong> ${order.customerName}</p>
+                        <p class="text-slate-300 mb-2"><strong>Time Slot:</strong> ${order.timeSlot}</p>
+                        <p class="text-slate-300 mb-4"><strong>Status:</strong> ${order.status}</p>
+                        ${buttonDom}
+                    </div>
+                `;
+                container.innerHTML += item;
+            });
+        }
+
+        function markCompleted(orderId) {
+            const target = orderData.find(item => item.id === orderId);
+            if(target) {
+                target.status = "Completed";
+                renderOrderList();
+            }
+        }
+    </script>
+</body>
+</html>
