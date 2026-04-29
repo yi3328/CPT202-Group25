@@ -22,72 +22,83 @@
 <body class="min-h-screen p-10">
     <div class="max-w-5xl mx-auto">
         <h2 class="text-3xl font-extrabold mb-10">Pending Approvals</h2>
+        <div id="loading" class="text-center text-slate-400 py-10">Loading...</div>
+        <div id="emptyMsg" class="hidden text-center text-slate-400 py-10">No pending orders.</div>
         <div id="container" class="space-y-6"></div>
     </div>
 
     <script>
-        const orderList = [
-            {
-                id: 1,
-                customer: "Alice Johnson",
-                timeSlot: "2025-12-20 10:00 - 10:30",
-                submitTime: "2025-12-20 08:10",
-                status: "Pending",
-                withinTime: true
-            },
-            {
-                id: 2,
-                customer: "Bob Smith",
-                timeSlot: "2025-12-20 14:00 - 14:30",
-                submitTime: "2025-12-20 05:00",
-                status: "Pending",
-                withinTime: false
-            },
-            {
-                id: 3,
-                customer: "Charlie Brown",
-                timeSlot: "2025-12-20 16:00 - 16:30",
-                status: "Confirmed"
+        const API_BASE = 'http://localhost:8081/api/specialists';
+        const specialist = JSON.parse(sessionStorage.getItem('specialist') || 'null');
+
+        if (!specialist) {
+            window.location.href = 'specialist-login.html';
+        } else {
+            loadPendingOrders();
+        }
+
+        async function loadPendingOrders() {
+            try {
+                const response = await fetch(`${API_BASE}/${specialist.specialistID}/pending-orders`);
+                const orders = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (orders.length === 0) {
+                    document.getElementById('emptyMsg').style.display = 'block';
+                    return;
+                }
+
+                render(orders);
+            } catch (e) {
+                document.getElementById('loading').textContent = 'Failed to load orders';
             }
-        ];
+        }
 
-        window.onload = render;
-
-        function render() {
+        function render(orders) {
             const box = document.getElementById("container");
             box.innerHTML = "";
 
-            orderList.forEach(order => {
+            orders.forEach(order => {
                 let btn = "";
                 let msg = "";
 
-                if (order.status === "Pending") {
+                if (order.orderStatus === "Unconfirmed") {
                     if (order.withinTime) {
-                        btn = `<button onclick="confirmOrder(${order.id})" class="px-6 py-2 bg-green-500 hover:bg-green-400 rounded-lg font-bold">Confirm Appointment</button>`;
+                        btn = `<button onclick="confirmOrder(${order.appointmentID}, ${order.orderID})" class="px-6 py-2 bg-green-500 hover:bg-green-400 rounded-lg font-bold">Confirm Appointment</button>`;
                     } else {
-                        msg = `<p class="text-red-400">Auto-cancelled: exceeded 2 hours</p >`;
-                        order.status = "Auto Cancelled";
+                        msg = `<p class="text-red-400">Auto-cancelled: exceeded 30 seconds</p>`;
+                        order.orderStatus = "Overdue";
                     }
                 }
 
-                const item = `
-                <div class="glass rounded-2xl p-6">
-                    <p class="text-lg font-semibold">${order.customer}</p >
-                    <p class="text-slate-300">${order.timeSlot}</p >
-                    <p class="text-slate-400 text-sm">Submitted: ${order.submitTime || '--'}</p >
-                    <p class="mt-2 font-medium text-yellow-300">Status: ${order.status}</p >
+                const item = document.createElement('div');
+                item.className = 'glass rounded-2xl p-6';
+                item.innerHTML = `
+                    <p class="text-lg font-semibold">${order.customerName}</p>
+                    <p class="text-sky-400 text-sm">Expertise: ${order.specialistExpertise || 'General'}</p>
+                    <p class="text-slate-300">${order.date} ${order.timeSlot}</p>
+                    <p class="text-slate-400 text-sm">Submitted: ${order.submitTime || '--'}</p>
+                    <p class="mt-2 font-medium text-yellow-300">Status: ${order.orderStatus}</p>
                     ${msg}
                     <div class="mt-4">${btn}</div>
-                </div>`;
-                box.innerHTML += item;
+                `;
+                box.appendChild(item);
             });
         }
 
-        function confirmOrder(id) {
-            const target = orderList.find(o => o.id === id);
-            if (target) {
-                target.status = "Confirmed";
-                render();
+        async function confirmOrder(appointmentID, orderID) {
+            try {
+                const response = await fetch(`${API_BASE}/orders/${orderID}/confirm`, { method: 'PUT' });
+                if (response.ok) {
+                    alert('Order confirmed successfully!');
+                    loadPendingOrders(); // 重新加载
+                } else {
+                    const err = await response.text();
+                    alert('Failed: ' + err);
+                }
+            } catch (e) {
+                alert('Connection error');
             }
         }
     </script>

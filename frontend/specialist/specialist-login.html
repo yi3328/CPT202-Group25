@@ -16,6 +16,7 @@
             border: 1px solid rgba255, 255, 255, 0.1;
             backdrop-filter: blur(10px);
         }
+        .error-msg { color: #f87171; font-size: 0.875rem; margin-top: 0.5rem; display: none; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center text-white">
@@ -23,16 +24,61 @@
         <h2 class="text-3xl font-bold text-center mb-8">Specialist Login</h2>
         <div class="mb-5">
             <label class="block text-sm text-slate-300 mb-2">Username</label>
-            <input type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none">
+            <input id="username" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500">
         </div>
         <div class="mb-8">
             <label class="block text-sm text-slate-300 mb-2">Password</label>
-            <input type="password" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none">
+            <input id="password" type="password" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500">
+            <p id="errorMsg" class="error-msg">Invalid username or password</p>
         </div>
-        <button onclick="window.location.href='specialist-dashboard.html'" 
-        class="w-full bg-blue-500 hover:bg-blue-600 py-3 rounded-lg font-semibold transition">
+        <button onclick="specialistLogin()" class="w-full bg-blue-500 hover:bg-blue-600 py-3 rounded-lg font-semibold transition">
             Login
         </button>
     </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8081/api/specialists';
+
+        async function specialistLogin() {
+            const number = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errorMsg = document.getElementById('errorMsg');
+
+            if (!number || !password) {
+                errorMsg.textContent = 'Please enter username and password';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        specialistNumber: number,
+                        specialistPassword: password
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // 保存专家信息到 sessionStorage
+                    sessionStorage.setItem('specialist', JSON.stringify(data));
+                    window.location.href = 'specialist-dashboard.html';
+                } else {
+                    errorMsg.textContent = 'Invalid username or password';
+                    errorMsg.style.display = 'block';
+                }
+            } catch (e) {
+                errorMsg.textContent = 'Connection error. Please try again.';
+                errorMsg.style.display = 'block';
+            }
+        }
+
+        // 回车键登录
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') specialistLogin();
+        });
+    </script>
 </body>
 </html>

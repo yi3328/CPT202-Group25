@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>My Schedule</title>
+    <title>My Schedule</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -29,25 +29,109 @@
 <body class="min-h-screen p-10">
     <div class="max-w-5xl mx-auto">
         <h2 class="text-3xl font-extrabold mb-10">My Schedule</h2>
-        <div class="space-y-4" id="scheduleList">
-            <!-- Reservation 1: Click to jump to details -->
-            <div class="glass rounded-xl p-6 appointment-item" onclick="goToDetail()">
-                <p class="font-semibold text-lg">Alice Johnson</p >
-                <p class="text-slate-300">2025-12-20 10:00 - 10:30</p >
-                <p class="text-sm text-blue-400 mt-2">Click to view appointment details</p >
-            </div>
 
-            <div class="glass rounded-xl p-6 appointment-item" onclick="goToDetail()">
-                <p class="font-semibold text-lg">Bob Smith</p >
-                <p class="text-slate-300">2025-12-20 14:00 - 14:30</p >
-                <p class="text-sm text-blue-400 mt-2">Click to view appointment details</p >
+        <div class="glass rounded-2xl p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <p class="text-xs text-slate-500 mb-2">Search Customer</p>
+                    <input id="searchName" type="text" placeholder="Name..." class="w-full bg-slate-800 rounded-lg p-3 text-white border-0 outline-none focus:ring-sky-500">
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 mb-2">Filter Status</p>
+                    <select id="filterStatus" class="w-full bg-slate-800 rounded-lg p-3 text-white border-0 outline-none focus:ring-sky-500">
+                        <option value="all">All</option>
+                        <option value="Unpaid">Unpaid</option>
+                        <option value="Unconfirmed">Unconfirmed</option>
+                        <option value="Confirmed">Confirmed</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="flex gap-3 items-end">
+                    <button onclick="applyFilter()" class="flex-1 bg-sky-500 hover:bg-sky-400 text-slate-900 font-bold py-3 px-4 rounded-lg transition">Search</button>
+                    <button onclick="clearFilter()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-lg transition">Clear</button>
+                </div>
             </div>
         </div>
+
+        <div id="loading" class="text-center text-slate-400 py-10">Loading...</div>
+        <div id="emptyMsg" class="hidden text-center text-slate-400 py-10">No appointments found.</div>
+        <div class="space-y-4" id="scheduleList"></div>
     </div>
 
     <script>
-        function goToDetail() {
-            window.location.href = "appointment-detail.html";
+        const API_BASE = 'http://localhost:8081/api/specialists';
+        const specialist = JSON.parse(sessionStorage.getItem('specialist') || 'null');
+
+        if (!specialist) {
+            window.location.href = 'specialist-login.html';
+        } else {
+            applyFilter();
+        }
+
+        async function applyFilter() {
+            const name = document.getElementById("searchName").value.trim();
+            const status = document.getElementById("filterStatus").value;
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loading').textContent = 'Loading...';
+            document.getElementById('emptyMsg').classList.add('hidden');
+            document.getElementById('scheduleList').innerHTML = '';
+
+            try {
+                let url = `${API_BASE}/${specialist.specialistID}/search?`;
+                if (name) url += `customerName=${encodeURIComponent(name)}&`;
+                if (status && status !== 'all') url += `status=${encodeURIComponent(status)}`;
+
+                const response = await fetch(url);
+                const orders = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (orders.length === 0) {
+                    document.getElementById('emptyMsg').classList.remove('hidden');
+                    return;
+                }
+
+                const container = document.getElementById('scheduleList');
+                orders.forEach(item => {
+                    const statusColor = getStatusColor(item.orderStatus);
+                    const div = document.createElement('div');
+                    div.className = 'glass rounded-xl p-6 appointment-item';
+                    div.onclick = () => goToDetail(item.appointmentID);
+                    div.innerHTML = `
+                        <p class="font-semibold text-lg">${item.customerName}</p>
+                        <p class="text-slate-300">${item.date} ${item.timeSlot}</p>
+                        <p class="text-sm ${statusColor} mt-2">Status: ${item.orderStatus}</p>
+                        <p class="text-sm text-blue-400 mt-1">Click to view appointment details</p>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (e) {
+                document.getElementById('loading').textContent = 'Failed to load schedule';
+            }
+        }
+
+        function clearFilter() {
+            document.getElementById("searchName").value = "";
+            document.getElementById("filterStatus").value = "all";
+            applyFilter();
+        }
+
+        function getStatusColor(status) {
+            switch(status) {
+                case 'Unpaid': return 'text-amber-400';
+                case 'Unconfirmed': return 'text-yellow-400';
+                case 'Confirmed': return 'text-blue-400';
+                case 'Completed': return 'text-green-400';
+                case 'Cancelled': return 'text-red-400';
+                default: return 'text-slate-400';
+            }
+        }
+
+        function goToDetail(appointmentID) {
+            sessionStorage.setItem('currentAppointmentID', appointmentID);
+            window.location.href = 'appointment-detail.html';
         }
     </script>
 </body>

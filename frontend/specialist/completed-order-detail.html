@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Completed Order Details | Specialist Hub</title>
+    <title>Customer Feedback | Specialist Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -21,38 +21,70 @@
 </head>
 <body class="min-h-screen p-10">
     <div class="max-w-5xl mx-auto">
-        <h2 class="text-3xl font-extrabold mb-10">Completed Order Details</h2>
+        <h2 class="text-3xl font-extrabold mb-10">Customer Feedback</h2>
 
-        <div class="glass rounded-2xl p-8 space-y-6">
-            <div>
-                <p class="text-xs uppercase text-slate-500 mb-1">Customer Name</p >
-                <p class="text-xl font-semibold">Alice Johnson</p >
-            </div>
-            <div>
-                <p class="text-xs uppercase text-slate-500 mb-1">Appointment Time</p >
-                <p>2025-12-19 09:00 - 09:30</p >
-            </div>
-            <div>
-                <p class="text-xs uppercase text-slate-500 mb-1">Room</p >
-                <p>Room 302</p >
-            </div>
-            <div>
-                <p class="text-xs uppercase text-slate-500 mb-1">Session Notes</p >
-                <p class="bg-slate-800 p-4 rounded-lg">Discussed stress management strategies. Client showed improvement in sleep quality.</p >
-            </div>
-            <div>
-                <p class="text-xs uppercase text-slate-500 mb-1">Final Total Charge</p >
-                <p class="text-xl font-semibold text-green-400">$80.00</p >
-            </div>
-            <div>
-                <p class="text-xs uppercase text-slate-500 mb-1">Customer Rating</p >
-                <p class="text-yellow-400">★★★★★</p >
-            </div>
-            <div>
-                <p class="text-xs uppercase text-slate-500 mb-1">Customer Feedback</p >
-                <p class="bg-slate-800 p-4 rounded-lg">Very professional and helpful. I feel much better now.</p >
-            </div>
-        </div>
+        <div id="loading" class="text-center text-slate-400 py-10">Loading...</div>
+        <div id="emptyMsg" class="hidden text-center text-slate-400 py-10">No feedback yet.</div>
+        <div id="feedbackList" class="space-y-6"></div>
     </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8081/api/feedbacks';
+        const specialist = JSON.parse(sessionStorage.getItem('specialist') || 'null');
+
+        if (!specialist) {
+            window.location.href = 'specialist-login.html';
+        } else {
+            loadFeedback();
+        }
+
+        async function loadFeedback() {
+            try {
+                const response = await fetch(`${API_BASE}/specialist/${specialist.specialistID}`);
+                const feedbacks = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (feedbacks.length === 0) {
+                    document.getElementById('emptyMsg').classList.remove('hidden');
+                    return;
+                }
+
+                const container = document.getElementById('feedbackList');
+                feedbacks.forEach(fb => {
+                    const stars = '★'.repeat(fb.rating) + '☆'.repeat(5 - fb.rating);
+                    const div = document.createElement('div');
+                    div.className = 'glass rounded-2xl p-8';
+                    div.innerHTML = `
+                        <div class="grid grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <p class="text-xs uppercase text-slate-500 mb-1">Customer Name</p>
+                                <p class="text-xl font-semibold">${fb.customerName || 'Unknown'}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-slate-500 mb-1">Appointment Time</p>
+                                <p>${fb.date} ${fb.timeSlot || ''}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-slate-500 mb-1">Room</p>
+                                <p>${fb.roomNumber || 'TBD'}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-slate-500 mb-1">Customer Rating</p>
+                                <p class="text-yellow-400 text-xl">${stars}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs uppercase text-slate-500 mb-1">Customer Feedback</p>
+                            <p class="bg-slate-800 p-4 rounded-lg mt-2">${fb.comment || 'No comment provided.'}</p>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (e) {
+                document.getElementById('loading').textContent = 'Failed to load feedback';
+            }
+        }
+    </script>
 </body>
 </html>

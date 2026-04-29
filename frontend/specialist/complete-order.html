@@ -9,7 +9,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0F172A;
+            background-color: #0F1217;
             color: #F8FAFC;
         }
         .glass-panel {
@@ -22,69 +22,78 @@
 <body class="min-h-screen p-10">
     <div class="max-w-5xl mx-auto">
         <h2 class="text-3xl font-extrabold mb-10 tracking-tight">Appointment Orders</h2>
+        <div id="loading" class="text-center text-slate-400 py-10">Loading...</div>
+        <div id="emptyMsg" class="hidden text-center text-slate-400 py-10">No confirmed orders.</div>
         <div id="orderContainer" class="space-y-5"></div>
     </div>
 
     <script>
-        const orderData = [
-            {
-                id: 1,
-                customerName: "Alice Johnson",
-                timeSlot: "09:00 - 09:30",
-                status: "Confirmed",
-                isTimeOver: false
-            },
-            {
-                id: 2,
-                customerName: "Bob Smith",
-                timeSlot: "10:00 - 10:30",
-                status: "Confirmed",
-                isTimeOver: true
-            },
-            {
-                id: 3,
-                customerName: "Charlie Brown",
-                timeSlot: "14:00 - 14:30",
-                status: "Completed",
-                isTimeOver: true
+        const API_BASE = 'http://localhost:8081/api/specialists';
+        const specialist = JSON.parse(sessionStorage.getItem('specialist') || 'null');
+
+        if (!specialist) {
+            window.location.href = 'specialist-login.html';
+        } else {
+            loadOrders();
+        }
+
+        async function loadOrders() {
+            try {
+                const response = await fetch(`${API_BASE}/${specialist.specialistID}/completed-orders`);
+                const orders = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (orders.length === 0) {
+                    document.getElementById('emptyMsg').style.display = 'block';
+                    return;
+                }
+
+                renderOrderList(orders);
+            } catch (e) {
+                document.getElementById('loading').textContent = 'Failed to load orders';
             }
-        ];
+        }
 
-        window.onload = function() {
-            renderOrderList();
-        };
-
-        function renderOrderList() {
+        function renderOrderList(orders) {
             const container = document.getElementById("orderContainer");
             container.innerHTML = "";
 
-            orderData.forEach(order => {
+            orders.forEach(order => {
                 let buttonDom = "";
-                if(order.status === "Confirmed") {
-                    if(order.isTimeOver) {
-                        buttonDom = `<button onclick="markCompleted(${order.id})" class="px-5 py-2 bg-sky-500 hover:bg-sky-400 rounded-lg font-bold text-slate-900 transition">Mark as Completed</button>`;
+                if (order.orderStatus === "Confirmed") {
+                    if (order.isTimeOver) {
+                        buttonDom = `<button onclick="markCompleted(${order.appointmentID}, ${order.orderID})" class="px-5 py-2 bg-sky-500 hover:bg-sky-400 rounded-lg font-bold text-slate-900 transition">Mark as Completed</button>`;
                     } else {
                         buttonDom = `<button disabled class="px-5 py-2 bg-slate-600 rounded-lg font-bold text-slate-300 cursor-not-allowed">Mark as Completed</button>`;
                     }
                 }
 
-                const item = `
-                    <div class="glass-panel rounded-2xl p-6">
-                        <p class="text-slate-300 mb-2"><strong>Customer:</strong> ${order.customerName}</p>
-                        <p class="text-slate-300 mb-2"><strong>Time Slot:</strong> ${order.timeSlot}</p>
-                        <p class="text-slate-300 mb-4"><strong>Status:</strong> ${order.status}</p>
-                        ${buttonDom}
-                    </div>
+                const item = document.createElement('div');
+                item.className = 'glass-panel rounded-2xl p-6';
+                item.innerHTML = `
+                    <p class="text-slate-300 mb-2"><strong>Customer:</strong> ${order.customerName}</p>
+                    <p class="text-slate-300 mb-2"><strong>Date:</strong> ${order.date}</p>
+                    <p class="text-slate-300 mb-2"><strong>Time Slot:</strong> ${order.timeSlot}</p>
+                    <p class="text-slate-300 mb-4"><strong>Status:</strong> ${order.orderStatus}</p>
+                    ${buttonDom}
                 `;
-                container.innerHTML += item;
+                container.appendChild(item);
             });
         }
 
-        function markCompleted(orderId) {
-            const target = orderData.find(item => item.id === orderId);
-            if(target) {
-                target.status = "Completed";
-                renderOrderList();
+        async function markCompleted(appointmentID, orderID) {
+            try {
+                const response = await fetch(`${API_BASE}/orders/${orderID}/complete`, { method: 'PUT' });
+                if (response.ok) {
+                    alert('Order marked as completed!');
+                    loadOrders();
+                } else {
+                    const err = await response.text();
+                    alert('Failed: ' + err);
+                }
+            } catch (e) {
+                alert('Connection error');
             }
         }
     </script>

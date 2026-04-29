@@ -39,12 +39,13 @@ public class AppointmentController {
         slot.setIsBooked(1); 
         availabilityRepository.save(slot);
         
-        appointmentRepository.save(request);
+        Appointment savedAppt = appointmentRepository.save(request);
 
         Order newOrder = new Order();
         newOrder.setCustomerID(request.getCustomerID());
         newOrder.setSpecialistID(request.getSpecialistID());
-        newOrder.setOrderStatus(0); 
+        newOrder.setAppointmentID(savedAppt.getAppointmentID());
+        newOrder.setOrderStatus(1); // 1 = Unpaid
         orderRepository.save(newOrder);
 
         return ResponseEntity.ok("Success: Appointment confirmed!");
@@ -64,18 +65,16 @@ public class AppointmentController {
             Optional<Specialist> specialist = specialistRepository.findById(appt.getSpecialistID());
             bookingData.put("specialistName", specialist.map(Specialist::getSpecialistName).orElse("Specialist"));
 
-            // 🛠️ 终极修复：通过客户ID和专家ID寻找最新的订单，完美避开 ID 脱节问题
-            Optional<Order> order = orderRepository.findFirstByCustomerIDAndSpecialistIDOrderByOrderIDDesc(
-                appt.getCustomerID(), appt.getSpecialistID()
-            );
-            
+            Optional<Order> order = orderRepository.findByAppointmentID(appt.getAppointmentID());
+
             if (order.isPresent()) {
                 bookingData.put("orderID", order.get().getOrderID());
                 bookingData.put("orderStatus", order.get().getOrderStatus());
+                bookingData.put("createdAt", order.get().getCreatedAt());
             } else {
-                // 安全兜底：如果发生异常找不到订单，强制视为未支付 (0)
-                bookingData.put("orderStatus", 0);
-                bookingData.put("orderID", 9999); 
+                // 安全兜底：如果发生异常找不到订单，强制视为未支付 (1)
+                bookingData.put("orderStatus", 1);
+                bookingData.put("orderID", 9999);
             }
             
             responseList.add(bookingData);
@@ -99,13 +98,11 @@ public class AppointmentController {
             availabilityRepository.save(slot);
         }
 
-        // 🛠️ 终极修复：同步将最新生成的那个订单状态改为已取消 (2)
-        Optional<Order> order = orderRepository.findFirstByCustomerIDAndSpecialistIDOrderByOrderIDDesc(
-            appointment.getCustomerID(), appointment.getSpecialistID()
-        );
+        // 取消订单：按appointmentID查找
+        Optional<Order> order = orderRepository.findByAppointmentID(appointmentID);
         if(order.isPresent()){
             Order o = order.get();
-            o.setOrderStatus(2);
+            o.setOrderStatus(5); // 5 = Cancelled
             orderRepository.save(o);
         }
 

@@ -8,4 +8,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     
     // Custom method to find all appointments for a specific customer
     List<Appointment> findByCustomerID(Integer customerID);
+
+    // Custom method to find all appointments for a specific specialist
+    List<Appointment> findBySpecialistID(Integer specialistID);
 }

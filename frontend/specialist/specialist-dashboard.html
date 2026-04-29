@@ -30,7 +30,7 @@
             text-decoration:none;
             transition:0.2s;
         }
-        .menu-item:hover{
+        .menu-item:hover, .menu-item.active{
             background:rgba(255,255,255,0.1);
             color:#fff;
         }
@@ -43,22 +43,23 @@
 <body>
     <!-- Side Menu -->
     <div class="sidebar">
-        <h3 class="text-xl font-bold mb-10 text-white">Specialist Panel</h3>
-        <a href=" " class="menu-item">My Schedule</a >
-        <a href="order-confirmation.html" class="menu-item">Pending Confirmation</a >
-        <a href="complete-order.html" class="menu-item">Completed Orders</a >
-        <a href="order-filter.html" class="menu-item">Search Orders</a >
-        <a href="notify-new-booking.html" class="menu-item">New Booking Alerts</a >
-        <a href="notify-order-cancel.html" class="menu-item">Cancellation Alerts</a >
-        <a href="completed-order-detail.html" class="menu-item">Customer Feedback</a >
+        <h3 class="text-xl font-bold mb-4 text-white">Specialist Panel</h3>
+        <p id="specialistName" class="text-sm text-slate-400 mb-8">Welcome</p>
+        <a href="schedule.html" class="menu-item">My Schedule</a>
+        <a href="order-confirmation.html" class="menu-item">Pending Confirmation</a>
+        <a href="complete-order.html" class="menu-item">Completed Orders</a>
+        <a href="notify-new-booking.html" class="menu-item">New Booking Alerts</a>
+        <a href="notify-order-cancel.html" class="menu-item">Cancellation Alerts</a>
+        <a href="completed-order-detail.html" class="menu-item">Customer Feedback</a>
+        <button onclick="logout()" class="w-full mt-8 px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-sm">Logout</button>
     </div>
 
     <!-- Main Content -->
     <div class="main-content">
         <h1 class="text-4xl font-bold mb-6">Welcome Back</h1>
-        <p class="text-slate-400 text-lg">
+        <p class="text-slate-400 text-lg mb-8">
             Select a function from the menu to manage appointments and view details.
-        </p >
+        </p>
         <div class="mt-10 bg-slate-800/50 rounded-2xl p-8 inline-block">
             <p class="text-slate-300">
                 ✅ Manage your daily schedule<br>
@@ -66,8 +67,25 @@
                 ✅ Confirm or review orders<br>
                 ✅ Check customer feedback and charges<br>
                 ✅ Receive real-time notifications
-            </p >
+            </p>
         </div>
     </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8081/api/specialists';
+
+        // 检查登录状态
+        const specialist = JSON.parse(sessionStorage.getItem('specialist') || 'null');
+        if (!specialist) {
+            window.location.href = 'specialist-login.html';
+        } else {
+            document.getElementById('specialistName').textContent = specialist.specialistName || 'Welcome';
+        }
+
+        function logout() {
+            sessionStorage.removeItem('specialist');
+            window.location.href = 'specialist-login.html';
+        }
+    </script>
 </body>
 </html>

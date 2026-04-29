@@ -8,8 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #F8FAFC; }
-        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .modal-bg { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; padding: 1.5rem; }
+        .modal-bg { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 50; }
     </style>
 </head>
 <body class="min-h-screen relative">
@@ -36,171 +36,157 @@
         </div>
     </main>
 
-    <div id="paymentModal" class="fixed inset-0 modal-bg flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-8 max-w-md w-full shadow-2xl transform scale-95 transition-transform duration-300" id="modalContent">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-white">Secure Checkout</h2>
-                <button onclick="closePaymentModal()" class="text-slate-500 hover:text-white">&times;</button>
-            </div>
-            
-            <div class="bg-slate-800 p-4 rounded-xl mb-6">
-                <p class="text-sm text-slate-400">Total Amount Due</p>
-                <p class="text-3xl font-bold text-emerald-400">$150.00</p>
-            </div>
+    <div id="feedbackModal" class="fixed inset-0 modal-bg hidden">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-8 max-w-md w-full shadow-2xl">
+            <h2 class="text-2xl font-bold text-white mb-6">Leave Feedback</h2>
 
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">Card Number</label>
-                    <input type="text" class="w-full bg-slate-800 border-none rounded-lg p-3 text-white outline-none focus:ring-1 focus:ring-sky-500" value="**** **** **** 4242" disabled>
-                </div>
-                <div class="flex gap-4">
-                    <div class="flex-1">
-                        <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">Expiry</label>
-                        <input type="text" class="w-full bg-slate-800 border-none rounded-lg p-3 text-white outline-none" value="12/28" disabled>
-                    </div>
-                    <div class="flex-1">
-                        <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">CVC</label>
-                        <input type="text" class="w-full bg-slate-800 border-none rounded-lg p-3 text-white outline-none" value="***" disabled>
-                    </div>
+            <div class="mb-6">
+                <p class="text-sm text-slate-400 mb-3">Your Rating</p>
+                <div class="flex gap-2" id="starRating">
+                    <button onclick="setRating(1)" class="text-3xl text-slate-600 hover:text-amber-400 transition">★</button>
+                    <button onclick="setRating(2)" class="text-3xl text-slate-600 hover:text-amber-400 transition">★</button>
+                    <button onclick="setRating(3)" class="text-3xl text-slate-600 hover:text-amber-400 transition">★</button>
+                    <button onclick="setRating(4)" class="text-3xl text-slate-600 hover:text-amber-400 transition">★</button>
+                    <button onclick="setRating(5)" class="text-3xl text-slate-600 hover:text-amber-400 transition">★</button>
                 </div>
             </div>
 
-            <input type="hidden" id="currentPayingOrderID">
+            <div class="mb-6">
+                <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">Comment (Optional)</label>
+                <textarea id="feedbackComment" rows="4" class="w-full bg-slate-800 border-none rounded-lg p-3 text-white outline-none resize-none" placeholder="Share your experience..."></textarea>
+            </div>
 
-            <button onclick="processPayment()" class="w-full mt-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-lg font-bold transition flex justify-center items-center">
-                <span id="payBtnText">Confirm Payment</span>
-            </button>
+            <input type="hidden" id="feedbackOrderID">
+            <input type="hidden" id="feedbackSpecialistID">
+            <input type="hidden" id="currentRating" value="0">
+
+            <button onclick="submitFeedback()" class="w-full py-4 bg-sky-500 hover:bg-sky-400 text-slate-900 rounded-lg font-bold transition">Submit Feedback</button>
+            <button onclick="closeFeedbackModal()" class="w-full py-2 mt-2 text-slate-400 hover:text-white">Cancel</button>
         </div>
     </div>
 
     <script>
-        // 1. 安全拦截：检查是否已登录
         const currentCustomerID = localStorage.getItem('customerID');
         if (!currentCustomerID) {
-            alert("Please log in first!");
             window.location.href = 'login.html';
         }
 
         async function fetchMyBookings() {
             try {
-                const response = await fetch(`http://localhost:8081/api/appointments/customer/${currentCustomerID}`);
+                const response = await fetch('http://localhost:8081/api/appointments/customer/' + currentCustomerID);
                 const data = await response.json();
-                
-                document.getElementById('loading').classList.add('hidden');
+
+                document.getElementById('loading').style.display = 'none';
                 const list = document.getElementById('bookingList');
                 list.innerHTML = '';
-                
+
                 if (data.length === 0) {
                     document.getElementById('noBookings').classList.remove('hidden');
-                } else {
-                    document.getElementById('noBookings').classList.add('hidden');
-                    list.classList.remove('hidden');
-                    
-                    data.forEach(booking => {
-                        const isUnpaid = booking.orderStatus === 0;
-                        const paymentUI = isUnpaid 
-                            ? `<button onclick="openPaymentModal(${booking.orderID})" class="w-full py-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg hover:bg-emerald-500 hover:text-slate-900 transition font-bold text-sm">Pay Now ($150)</button>`
-                            : `<div class="w-full py-2 text-center text-slate-500 text-sm font-bold uppercase tracking-widest bg-slate-800/50 rounded-lg">Payment Complete</div>`;
-
-                        list.innerHTML += `
-                            <div class="glass-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between">
-                                <div>
-                                    <div class="absolute top-0 right-0 w-2 h-full ${isUnpaid ? 'bg-amber-400' : 'bg-emerald-400'}"></div>
-                                    <div class="flex justify-between items-start mb-4">
-                                        <div>
-                                            <h3 class="text-xl font-bold">${booking.specialistName}</h3>
-                                            <p class="text-xs text-slate-400 uppercase tracking-widest mt-1">Consultation</p>
-                                        </div>
-                                        <span class="px-3 py-1 ${isUnpaid ? 'bg-amber-500/10 text-amber-400' : 'bg-emerald-500/10 text-emerald-400'} text-xs rounded-full font-bold">
-                                            ${isUnpaid ? 'UNPAID' : 'PAID'}
-                                        </span>
-                                    </div>
-                                    <div class="space-y-3 text-sm text-slate-300 mt-6 mb-6 bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-                                        <div class="flex justify-between"><span class="text-slate-500">Date</span><span class="font-semibold text-white">${booking.date}</span></div>
-                                        <div class="flex justify-between"><span class="text-slate-500">Time</span><span class="font-semibold text-white">${booking.timeSlot}</span></div>
-                                    </div>
-                                </div>
-                                <div class="space-y-3">
-                                    ${paymentUI}
-                                    <button onclick="cancelBooking(${booking.appointmentID})" class="w-full py-2 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500 hover:text-white transition font-bold text-sm">Cancel Booking</button>
-                                </div>
-                            </div>
-                        `;
-                    });
+                    return;
                 }
-            } catch (error) {
-                console.error("Fetch error:", error);
+
+                document.getElementById('noBookings').classList.add('hidden');
+                list.classList.remove('hidden');
+
+                for (let i = 0; i < data.length; i++) {
+                    const booking = data[i];
+                    const status = booking.orderStatus;
+
+                    let statusText = 'UNKNOWN';
+                    let statusColor = 'slate';
+                    if (status === 1) { statusText = 'UNPAID'; statusColor = 'amber'; }
+                    else if (status === 2) { statusText = 'UNCONFIRMED'; statusColor = 'yellow'; }
+                    else if (status === 3) { statusText = 'CONFIRMED'; statusColor = 'blue'; }
+                    else if (status === 4) { statusText = 'COMPLETED'; statusColor = 'green'; }
+                    else if (status === 5) { statusText = 'CANCELLED'; statusColor = 'slate'; }
+
+                    let actionBtn = '';
+                    if (status === 4) {
+                        actionBtn = '<button onclick="openFeedbackModal(' + booking.orderID + ',' + booking.specialistID + ')" class="w-full py-3 bg-sky-500 hover:bg-sky-400 text-slate-900 rounded-lg font-bold">Leave Feedback</button>';
+                    } else if (status === 1) {
+                        actionBtn = '<div class="w-full py-3 bg-emerald-500/20 text-emerald-400 rounded-lg font-bold text-center">Pay Now ($150)</div>';
+                    } else if (status === 2) {
+                        actionBtn = '<div class="w-full py-3 text-center text-yellow-400 font-bold bg-yellow-500/20 rounded-lg">Awaiting Confirmation</div>';
+                    } else {
+                        actionBtn = '<div class="w-full py-3 text-center text-slate-500 font-bold bg-slate-800 rounded-lg">Payment Complete</div>';
+                    }
+
+                    const html = '<div class="glass-card rounded-2xl p-6">' +
+                        '<div class="flex justify-between items-start mb-4">' +
+                        '<div><h3 class="text-xl font-bold">' + booking.specialistName + '</h3>' +
+                        '<p class="text-xs text-slate-400 uppercase tracking-widest mt-1">Consultation</p></div>' +
+                        '<span class="px-3 py-1 bg-' + statusColor + '-500/10 text-' + statusColor + '-400 text-xs rounded-full font-bold">' + statusText + '</span>' +
+                        '</div>' +
+                        '<div class="bg-slate-800/50 p-4 rounded-xl mb-4">' +
+                        '<div class="flex justify-between"><span class="text-slate-500">Date</span><span class="font-semibold">' + booking.date + '</span></div>' +
+                        '<div class="flex justify-between"><span class="text-slate-500">Time</span><span class="font-semibold">' + booking.timeSlot + '</span></div>' +
+                        '</div>' +
+                        actionBtn +
+                        '</div>';
+
+                    list.innerHTML += html;
+                }
+            } catch (e) {
+                document.getElementById('loading').textContent = 'Error loading bookings';
             }
         }
 
-        function openPaymentModal(orderID) {
-            document.getElementById('currentPayingOrderID').value = orderID;
-            const modal = document.getElementById('paymentModal');
-            const content = document.getElementById('modalContent');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                content.classList.remove('scale-95');
-            }, 10);
+        function openFeedbackModal(orderID, specialistID) {
+            document.getElementById('feedbackOrderID').value = orderID;
+            document.getElementById('feedbackSpecialistID').value = specialistID;
+            document.getElementById('currentRating').value = 0;
+            document.getElementById('feedbackComment').value = '';
+            updateStars(0);
+            document.getElementById('feedbackModal').classList.remove('hidden');
         }
 
-        function closePaymentModal() {
-            const modal = document.getElementById('paymentModal');
-            const content = document.getElementById('modalContent');
-            modal.classList.add('opacity-0');
-            content.classList.add('scale-95');
-            setTimeout(() => modal.classList.add('hidden'), 300);
+        function closeFeedbackModal() {
+            document.getElementById('feedbackModal').classList.add('hidden');
         }
 
-        async function processPayment() {
-            const orderID = document.getElementById('currentPayingOrderID').value;
-            const btnText = document.getElementById('payBtnText');
-            
-            btnText.innerText = "Processing...";
-            
-            const paymentData = {
-                orderID: parseInt(orderID),
-                paymentAmount: 150.00,
-                paymentMethod: 1 
+        function setRating(rating) {
+            document.getElementById('currentRating').value = rating;
+            updateStars(rating);
+        }
+
+        function updateStars(rating) {
+            const stars = document.querySelectorAll('#starRating button');
+            for (let i = 0; i < stars.length; i++) {
+                stars[i].style.color = (i < rating) ? '#fbbf24' : '#475569';
+            }
+        }
+
+        async function submitFeedback() {
+            const rating = parseInt(document.getElementById('currentRating').value);
+            if (rating === 0) {
+                alert('Please select a rating');
+                return;
+            }
+
+            const feedbackData = {
+                orderID: parseInt(document.getElementById('feedbackOrderID').value),
+                specialistID: parseInt(document.getElementById('feedbackSpecialistID').value),
+                customerID: parseInt(currentCustomerID),
+                rating: rating,
+                comment: document.getElementById('feedbackComment').value
             };
 
             try {
-                const response = await fetch('http://localhost:8081/api/payments/pay', {
+                const response = await fetch('http://localhost:8081/api/feedbacks', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(paymentData)
+                    body: JSON.stringify(feedbackData)
                 });
 
                 if (response.ok) {
-                    btnText.innerText = "Payment Successful!";
-                    setTimeout(() => {
-                        closePaymentModal();
-                        fetchMyBookings(); 
-                        btnText.innerText = "Confirm Payment";
-                    }, 1000);
+                    closeFeedbackModal();
+                    alert('Thank you for your feedback!');
                 } else {
-                    alert("Payment failed.");
-                    btnText.innerText = "Confirm Payment";
+                    const text = await response.text();
+                    alert(text);
                 }
-            } catch (error) {
-                alert("Connection error.");
-                btnText.innerText = "Confirm Payment";
-            }
-        }
-
-        async function cancelBooking(appointmentID) {
-            if (!confirm("Are you sure you want to cancel this appointment?")) return;
-            try {
-                const response = await fetch(`http://localhost:8081/api/appointments/cancel/${appointmentID}`, { method: 'DELETE' });
-                if (response.ok) {
-                    document.getElementById('loading').classList.remove('hidden');
-                    document.getElementById('bookingList').classList.add('hidden');
-                    fetchMyBookings(); 
-                } else {
-                    alert(await response.text());
-                }
-            } catch (error) {
-                alert("Server error.");
+            } catch (e) {
+                alert('Connection error');
             }
         }
 

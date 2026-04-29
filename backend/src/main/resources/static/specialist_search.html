@@ -5,16 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Search | Specialist Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #F8FAFC; }
         .glass-card {
-            background: rgba(30, 41, 59, 0.7); 
+            background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.4s ease;
         }
         .glass-card:hover { border-color: #38BDF8; transform: translateY(-5px); }
+        /* Flatpickr light theme customization */
+        .flatpickr-calendar {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .flatpickr-day { color: #1e293b; }
+        .flatpickr-day:hover { background: #f1f5f9; border-color: #f1f5f9; }
+        .flatpickr-day.selected { background: #0ea5e9; border-color: #0ea5e9; color: #ffffff; }
+        .flatpickr-day.today { border-color: #0ea5e9; }
+        .flatpickr-months .flatpickr-month, .flatpickr-current-month .flatpickr-monthDropdown-months {
+            color: #1e293b;
+        }
+        .flatpickr-weekday { color: #64748b; }
+        .flatpickr-current-month input.cur-year { color: #1e293b; }
+        .flatpickr-monthDropdown-months option { background: #ffffff; color: #1e293b; }
+        .flatpickr-prev-month svg, .flatpickr-next-month svg { fill: #1e293b; }
+        .flatpickr-time { border-top: 1px solid #e2e8f0; }
+        .numInputWrapper { color: #1e293b; }
+        span.flatpickr-weekday { color: #64748b; }
+        .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay { color: #cbd5e1; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -30,26 +53,28 @@
 
     <header class="max-w-7xl mx-auto px-8 py-12">
         <h1 class="text-6xl font-extrabold tracking-tight mb-4">Search <span class="text-sky-400">Availability.</span></h1>
-        <p class="text-slate-400 text-lg font-light">Filter elite experts by their real-time schedule and ID.</p>
+        <p class="text-slate-400 text-lg font-light">Filter elite experts by their real-time schedule and expertise.</p>
     </header>
 
     <section class="max-w-7xl mx-auto px-8 mb-12">
         <div class="bg-slate-900/50 p-6 rounded-2xl border border-slate-800 flex flex-wrap gap-4 items-end">
-            <div class="flex-1 min-w-[150px]">
-                <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">Specialist ID</label>
-                <input type="number" id="idSearch" class="w-full bg-slate-800 border-none rounded-lg p-3 text-white outline-none focus:ring-1 focus:ring-sky-500" placeholder="e.g. 1001">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">Expertise</label>
+                <select id="expertiseFilter" class="w-full bg-slate-800 border-none rounded-lg p-3 text-white outline-none cursor-pointer">
+                    <option value="">All Expertise</option>
+                </select>
             </div>
             <div class="flex-1 min-w-[200px]">
                 <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">Available Date</label>
-                <input type="date" id="dateFilter" class="w-full bg-slate-800 border-none rounded-lg p-3 text-white outline-none focus:ring-1 focus:ring-sky-500">
+                <div class="flex gap-2">
+                    <input type="text" id="dateFilter" class="flex-1 bg-slate-800 border-none rounded-lg p-3 text-white outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer" readonly>
+                    <button type="button" onclick="clearDate()" class="px-3 bg-slate-700 hover:bg-slate-600 rounded-lg text-white text-sm">Clean</button>
+                </div>
             </div>
             <div class="flex-1 min-w-[200px]">
                 <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">Timeslot</label>
                 <select id="slotFilter" class="w-full bg-slate-800 border-none rounded-lg p-3 text-white outline-none cursor-pointer">
                     <option value="">Any Time</option>
-                    <option value="09:00 - 10:00">09:00 - 10:00</option>
-                    <option value="14:00 - 15:00">14:00 - 15:00</option>
-                    <option value="19:00 - 20:00">19:00 - 20:00</option>
                 </select>
             </div>
             <button onclick="handleSearch()" class="bg-sky-500 hover:bg-sky-400 text-slate-900 font-bold py-3 px-8 rounded-lg transition">Search</button>
@@ -61,6 +86,7 @@
         <div id="noResults" class="hidden text-center py-20 text-slate-500 text-xl font-light">No available slots match your criteria.</div>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         // 1. 安全拦截：检查是否已登录
         const currentCustomerID = localStorage.getItem('customerID');
@@ -71,11 +97,73 @@
 
         let allAvailabilities = [];
 
+        let datePicker;
+
+        function clearDate() {
+            if (datePicker) {
+                datePicker.clear();
+            }
+        }
+
+        // Initialize flatpickr with English settings
+        datePicker = flatpickr("#dateFilter", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "Y/m/d",
+            allowInput: true,
+            locale: {
+                firstDayOfWeek: 1,
+                weekdays: {
+                    shorthand: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+                    longhand: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+                },
+                months: {
+                    shorthand: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                    longhand: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+                },
+                clear: "Clean",
+                today: "Today"
+            },
+            disableMobile: true
+        });
+
+        async function fetchExpertises() {
+            try {
+                const response = await fetch('http://localhost:8081/api/availabilities/expertises');
+                const expertises = await response.json();
+                const select = document.getElementById('expertiseFilter');
+                expertises.forEach(e => {
+                    const option = document.createElement('option');
+                    option.value = e;
+                    option.textContent = e;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Failed to fetch expertises:", error);
+            }
+        }
+
+        async function fetchTimeslots() {
+            try {
+                const response = await fetch('http://localhost:8081/api/availabilities/timeslots');
+                const timeslots = await response.json();
+                const select = document.getElementById('slotFilter');
+                timeslots.forEach(t => {
+                    const option = document.createElement('option');
+                    option.value = t;
+                    option.textContent = t;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Failed to fetch timeslots:", error);
+            }
+        }
+
         async function fetchAvailabilities() {
             try {
                 const response = await fetch('http://localhost:8081/api/availabilities/all');
                 allAvailabilities = await response.json();
-                handleSearch(); 
+                handleSearch();
             } catch (error) {
                 console.error("Failed to fetch data:", error);
             }
@@ -85,21 +173,21 @@
             const list = document.getElementById('specialistList');
             const noResults = document.getElementById('noResults');
             list.innerHTML = '';
-            
-            if (data.length === 0) { 
-                noResults.classList.remove('hidden'); 
-                return; 
+
+            if (data.length === 0) {
+                noResults.classList.remove('hidden');
+                return;
             }
             noResults.classList.add('hidden');
 
             data.forEach(s => {
                 const isAvailable = s.isBooked === 0;
-                
+
                 const badgeClass = isAvailable ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400';
                 const badgeText = isAvailable ? 'AVAILABLE' : 'BOOKED';
-                
-                const btnClass = isAvailable 
-                    ? 'bg-slate-800 border-slate-700 hover:bg-white hover:text-slate-900 cursor-pointer' 
+
+                const btnClass = isAvailable
+                    ? 'bg-slate-800 border-slate-700 hover:bg-white hover:text-slate-900 cursor-pointer'
                     : 'bg-slate-800/30 border-slate-700/30 text-slate-500 cursor-not-allowed';
                 const btnText = isAvailable ? 'Book This Slot' : 'Not Available';
                 const btnAction = isAvailable ? `onclick="bookSlot(${s.specialistID}, '${s.date}', '${s.slot}')"` : 'disabled';
@@ -113,7 +201,8 @@
                             </div>
                             <span class="px-3 py-1 ${badgeClass} text-xs rounded-full font-bold">${badgeText}</span>
                         </div>
-                        <div class="space-y-2 text-sm text-slate-400">
+                        <div class="space-y-2 text-sm text-white">
+                            <p class="text-sky-400">Expertise: ${s.specialistExpertise || 'General'}</p>
                             <p>Date: ${s.date}</p>
                             <p>Slot: ${s.slot}</p>
                         </div>
@@ -125,15 +214,18 @@
         }
 
         function handleSearch() {
-            const idVal = document.getElementById('idSearch').value;
+            const expertiseVal = document.getElementById('expertiseFilter').value;
             const dateVal = document.getElementById('dateFilter').value;
             const slotVal = document.getElementById('slotFilter').value;
 
+            const today = new Date().toISOString().split('T')[0];
+
             const filtered = allAvailabilities.filter(s => {
-                const matchID = !idVal || s.specialistID == idVal;
-                const matchDate = !dateVal || s.date == dateVal;
-                const matchSlot = !slotVal || s.slot == slotVal;
-                return matchID && matchDate && matchSlot; 
+                const isFutureOrToday = s.date >= today;
+                const matchExpertise = !expertiseVal || s.specialistExpertise === expertiseVal;
+                const matchDate = !dateVal || s.date === dateVal;
+                const matchSlot = !slotVal || s.slot === slotVal;
+                return isFutureOrToday && matchExpertise && matchDate && matchSlot;
             });
             render(filtered);
         }
@@ -143,7 +235,7 @@
                 specialistID: specID,
                 date: date,
                 timeSlot: slot,
-                customerID: parseInt(currentCustomerID) // 使用真实登录的ID
+                customerID: parseInt(currentCustomerID)
             };
 
             try {
@@ -155,7 +247,7 @@
 
                 if (response.ok) {
                     alert("Confirmed! Your appointment has been secured.");
-                    fetchAvailabilities(); 
+                    fetchAvailabilities();
                 } else {
                     const errorMsg = await response.text();
                     alert(errorMsg);
@@ -165,6 +257,8 @@
             }
         }
 
+        fetchExpertises();
+        fetchTimeslots();
         fetchAvailabilities();
     </script>
 </body>

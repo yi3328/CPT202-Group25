@@ -21,57 +21,71 @@
 </head>
 <body class="min-h-screen p-10">
     <div class="max-w-5xl mx-auto">
-        <h2 class="text-3xl font-extrabold mb-10 tracking-tight">Appointment Details</h2>
-        <div class="glass-panel rounded-2xl p-8 space-y-6">
+        <div class="flex items-center mb-8">
+            <button onclick="window.history.back()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg mr-4">← Back</button>
+            <h2 class="text-3xl font-extrabold tracking-tight">Appointment Details</h2>
+        </div>
+        <div id="loading" class="text-center text-slate-400 py-20">Loading...</div>
+        <div id="content" class="hidden glass-panel rounded-2xl p-8 space-y-6">
             <div>
                 <p class="text-xs uppercase text-slate-500 mb-1">Customer Name</p>
-                <p class="text-xl font-semibold" id="customerName">Alice Johnson</p>
+                <p class="text-xl font-semibold" id="customerName">-</p>
             </div>
             <div>
                 <p class="text-xs uppercase text-slate-500 mb-1">Date</p>
-                <p class="text-lg" id="date">2025-12-19</p>
+                <p class="text-lg" id="date">-</p>
             </div>
             <div>
                 <p class="text-xs uppercase text-slate-500 mb-1">Time Slot</p>
-                <p class="text-lg" id="timeSlot">09:00 - 09:30</p>
+                <p class="text-lg" id="timeSlot">-</p>
             </div>
             <div>
                 <p class="text-xs uppercase text-slate-500 mb-1">Room Number</p>
-                <p class="text-lg" id="roomNumber">Room 302</p>
+                <p class="text-lg" id="roomNumber">-</p>
             </div>
             <div>
-                <p class="text-xs uppercase text-slate-500 mb-1">Consultation Fee</p>
-                <p class="text-lg" id="fee">$80.00</p>
-            </div>
-            <div>
-                <p class="text-xs uppercase text-slate-500 mb-1">Customer Notes</p>
-                <p class="text-lg bg-slate-800 p-4 rounded-lg" id="notes">I need advice on mental stress management.</p>
+                <p class="text-xs uppercase text-slate-500 mb-1">Order Status</p>
+                <p class="text-lg" id="orderStatus">-</p>
             </div>
         </div>
     </div>
 
     <script>
-        window.onload = function() {
-            const appointment = {
-                customerName: "Alice Johnson",
-                date: "2025-12-19",
-                timeSlot: "09:00 - 09:30",
-                roomNumber: "Room 302",
-                fee: "$80.00",
-                notes: "I need advice on mental stress management."
-            };
+        const API_BASE = 'http://localhost:8081/api/specialists';
+        const specialist = JSON.parse(sessionStorage.getItem('specialist') || 'null');
 
-            if (!appointment.notes || appointment.notes.trim() === "") {
-                appointment.notes = "No additional notes provided.";
+        if (!specialist) {
+            window.location.href = 'specialist-login.html';
+        } else {
+            loadDetail();
+        }
+
+        async function loadDetail() {
+            const appointmentID = sessionStorage.getItem('currentAppointmentID');
+            if (!appointmentID) {
+                document.getElementById('loading').textContent = 'No appointment selected';
+                return;
             }
 
-            document.getElementById("customerName").innerText = appointment.customerName;
-            document.getElementById("date").innerText = appointment.date;
-            document.getElementById("timeSlot").innerText = appointment.timeSlot;
-            document.getElementById("roomNumber").innerText = appointment.roomNumber;
-            document.getElementById("fee").innerText = appointment.fee;
-            document.getElementById("notes").innerText = appointment.notes;
-        };
+            try {
+                const response = await fetch(`${API_BASE}/${specialist.specialistID}/appointments/${appointmentID}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('content').classList.remove('hidden');
+
+                    document.getElementById('customerName').innerText = data.customerName || '-';
+                    document.getElementById('date').innerText = data.date || '-';
+                    document.getElementById('timeSlot').innerText = data.timeSlot || '-';
+                    document.getElementById('roomNumber').innerText = data.roomNumber || 'TBD';
+                    document.getElementById('orderStatus').innerText = data.orderStatus || '-';
+                } else {
+                    document.getElementById('loading').textContent = 'Failed to load details';
+                }
+            } catch (e) {
+                document.getElementById('loading').textContent = 'Connection error';
+            }
+        }
     </script>
 </body>
 </html>

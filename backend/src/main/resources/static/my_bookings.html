@@ -97,9 +97,23 @@
                     list.classList.remove('hidden');
                     
                     data.forEach(booking => {
-                        const isUnpaid = booking.orderStatus === 0;
-                        const paymentUI = isUnpaid 
+                        const status = booking.orderStatus;
+                        // 1=Unpaid, 2=Unconfirmed(paid), 3=Confirmed, 4=Completed/Overdue, 5=Cancelled
+                        const isUnpaid = status === 1;
+                        const isUnconfirmed = status === 2;
+                        const isConfirmed = status === 3;
+                        const statusText = isUnpaid ? 'UNPAID' : isUnconfirmed ? 'UNCONFIRMED' : isConfirmed ? 'CONFIRMED' : status === 4 ? 'COMPLETED' : 'CANCELLED';
+                        const statusColor = isUnpaid ? 'amber' : isUnconfirmed ? 'yellow' : isConfirmed ? 'blue' : 'slate';
+
+                        // 倒计时显示（仅未付款订单）
+                        const countdownHTML = isUnpaid && booking.createdAt
+                            ? `<div class="text-center text-amber-400 text-xs mt-1" id="countdown-${booking.orderID}"></div>`
+                            : '';
+
+                        const paymentUI = isUnpaid
                             ? `<button onclick="openPaymentModal(${booking.orderID})" class="w-full py-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg hover:bg-emerald-500 hover:text-slate-900 transition font-bold text-sm">Pay Now ($150)</button>`
+                            : isUnconfirmed
+                            ? `<div class="w-full py-2 text-center text-yellow-400 text-sm font-bold uppercase tracking-widest bg-yellow-500/10 rounded-lg">Awaiting Confirmation</div>`
                             : `<div class="w-full py-2 text-center text-slate-500 text-sm font-bold uppercase tracking-widest bg-slate-800/50 rounded-lg">Payment Complete</div>`;
 
                         list.innerHTML += `
@@ -111,8 +125,8 @@
                                             <h3 class="text-xl font-bold">${booking.specialistName}</h3>
                                             <p class="text-xs text-slate-400 uppercase tracking-widest mt-1">Consultation</p>
                                         </div>
-                                        <span class="px-3 py-1 ${isUnpaid ? 'bg-amber-500/10 text-amber-400' : 'bg-emerald-500/10 text-emerald-400'} text-xs rounded-full font-bold">
-                                            ${isUnpaid ? 'UNPAID' : 'PAID'}
+                                        <span class="px-3 py-1 bg-${statusColor}-500/10 text-${statusColor}-400 text-xs rounded-full font-bold">
+                                            ${statusText}
                                         </span>
                                     </div>
                                     <div class="space-y-3 text-sm text-slate-300 mt-6 mb-6 bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
@@ -122,10 +136,16 @@
                                 </div>
                                 <div class="space-y-3">
                                     ${paymentUI}
+                                    ${countdownHTML}
                                     <button onclick="cancelBooking(${booking.appointmentID})" class="w-full py-2 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500 hover:text-white transition font-bold text-sm">Cancel Booking</button>
                                 </div>
                             </div>
                         `;
+
+                        // 为未付款订单启动倒计时
+                        if (isUnpaid && booking.createdAt) {
+                            startCountdown(booking.orderID, booking.createdAt);
+                        }
                     });
                 }
             } catch (error) {
@@ -195,13 +215,44 @@
                 if (response.ok) {
                     document.getElementById('loading').classList.remove('hidden');
                     document.getElementById('bookingList').classList.add('hidden');
-                    fetchMyBookings(); 
+                    fetchMyBookings();
                 } else {
                     alert(await response.text());
                 }
             } catch (error) {
                 alert("Server error.");
             }
+        }
+
+        // 倒计时功能
+        function startCountdown(orderID, createdAt) {
+            const countdownEl = document.getElementById(`countdown-${orderID}`);
+            if (!countdownEl) return;
+
+            const createdTime = new Date(createdAt).getTime();
+            const expireTime = createdTime + 30000; // 30秒
+
+            function updateCountdown() {
+                const now = Date.now();
+                const remaining = Math.max(0, expireTime - now);
+
+                if (remaining === 0) {
+                    countdownEl.innerHTML = '<span class="text-red-400 font-bold">Expired!</span>';
+                    // 自动刷新页面
+                    setTimeout(() => {
+                        document.getElementById('loading').classList.remove('hidden');
+                        document.getElementById('bookingList').classList.add('hidden');
+                        fetchMyBookings();
+                    }, 1000);
+                    return;
+                }
+
+                const seconds = Math.ceil(remaining / 1000);
+                countdownEl.innerHTML = `<span class="text-amber-400 font-bold">Auto-cancel in ${seconds}s</span>`;
+                setTimeout(updateCountdown, 1000);
+            }
+
+            updateCountdown();
         }
 
         fetchMyBookings();

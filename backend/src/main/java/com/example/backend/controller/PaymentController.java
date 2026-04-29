@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RestController
@@ -20,26 +21,28 @@ public class PaymentController {
     @Autowired private OrderRepository orderRepository;
 
     @PostMapping("/pay")
-    @Transactional // 确保订单状态和支付流水同时更新
+    @Transactional
     public ResponseEntity<String> processPayment(@RequestBody Payment request) {
-        
+
         Optional<Order> orderOpt = orderRepository.findById(request.getOrderID());
         if (orderOpt.isEmpty()) {
             return ResponseEntity.badRequest().body("Error: Order not found.");
         }
 
         Order order = orderOpt.get();
-        if (order.getOrderStatus() == 1) {
-            return ResponseEntity.badRequest().body("Error: This order is already paid.");
+        // 1 = Unpaid, 2 = Paid/Unconfirmed, 3 = Confirmed, 4 = Overdue
+        if (order.getOrderStatus() == 2 || order.getOrderStatus() == 3 || order.getOrderStatus() == 4) {
+            return ResponseEntity.badRequest().body("Error: This order is already processed.");
         }
 
-        // 1. 更新订单状态为 1 (Paid)
-        order.setOrderStatus(1);
+        // 付款后状态改为 2 (Paid/Unconfirmed)
+        order.setOrderStatus(2);
+        order.setPaidAt(LocalDateTime.now());
         orderRepository.save(order);
 
-        // 2. 生成支付流水存入 Payment 表
+        // 生成支付流水
         request.setPaymentStatus(1); // 1 = 支付成功
-        request.setOrderorderID(request.getOrderID()); // 遵守 ERD 的冗余字段要求
+        request.setOrderorderID(request.getOrderID());
         paymentRepository.save(request);
 
         return ResponseEntity.ok("Payment processed successfully!");
