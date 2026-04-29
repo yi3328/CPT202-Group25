@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Specialist Schedule | Admin Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body{font-family:'Inter',sans-serif;background-color:#0F172A;color:#F8FAFC;}
+        .glass-panel{background:rgba(30,41,59,0.7);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.1);}
+    </style>
+</head>
+<body class="min-h-screen p-10">
+    <div class="glass-panel rounded-xl p-6 max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-semibold">Specialist Schedule Management</h1>
+            <button class="px-4 py-2 bg-blue-600 rounded">Save Schedule</button>
+        </div>
+        <div class="mb-6">
+            <label class="block mb-2 text-sm">Select Specialist</label>
+            <select class="w-full md:w-1/3 px-3 py-2 bg-slate-800 rounded border border-slate-700">
+                <option>SPEC001 - Jane Smith</option>
+                <option>SPEC002 - Mike Lee</option>
+                <option>SPEC003 - Lisa Wang</option>
+            </select>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
+            <div class="glass-panel rounded-lg p-4 text-center">
+                <h3 class="mb-3 font-medium">Monday</h3>
+                <input type="time" class="w-full mb-2 px-2 py-1 bg-slate-800 rounded" value="09:00">
+                <input type="time" class="w-full px-2 py-1 bg-slate-800 rounded" value="17:00">
+            </div>
+            <div class="glass-panel rounded-lg p-4 text-center">
+                <h3 class="mb-3 font-medium">Tuesday</h3>
+                <input type="time" class="w-full mb-2 px-2 py-1 bg-slate-800 rounded" value="09:00">
+                <input type="time" class="w-full px-2 py-1 bg-slate-800 rounded" value="17:00">
+            </div>
+            <div class="glass-panel rounded-lg p-4 text-center">
+                <h3 class="mb-3 font-medium">Wednesday</h3>
+                <input type="time" class="w-full mb-2 px-2 py-1 bg-slate-800 rounded" value="09:00">
+                <input type="time" class="w-full px-2 py-1 bg-slate-800 rounded" value="17:00">
+            </div>
+            <div class="glass-panel rounded-lg p-4 text-center">
+                <h3 class="mb-3 font-medium">Thursday</h3>
+                <input type="time" class="w-full mb-2 px-2 py-1 bg-slate-800 rounded" value="09:00">
+                <input type="time" class="w-full px-2 py-1 bg-slate-800 rounded" value="17:00">
+            </div>
+            <div class="glass-panel rounded-lg p-4 text-center">
+                <h3 class="mb-3 font-medium">Friday</h3>
+                <input type="time" class="w-full mb-2 px-2 py-1 bg-slate-800 rounded" value="09:00">
+                <input type="time" class="w-full px-2 py-1 bg-slate-800 rounded" value="17:00">
+            </div>
+            <div class="glass-panel rounded-lg p-4 text-center">
+                <h3 class="mb-3 font-medium">Saturday</h3>
+                <input type="time" class="w-full mb-2 px-2 py-1 bg-slate-800 rounded" value="10:00">
+                <input type="time" class="w-full px-2 py-1 bg-slate-800 rounded" value="14:00">
+            </div>
+            <div class="glass-panel rounded-lg p-4 text-center">
+                <h3 class="mb-3 font-medium">Sunday</h3>
+                <input type="time" class="w-full mb-2 px-2 py-1 bg-slate-800 rounded" value="00:00" disabled>
+                <input type="time" class="w-full px-2 py-1 bg-slate-800 rounded" value="00:00" disabled>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

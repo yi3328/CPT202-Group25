@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Specialist Management | Admin Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0F172A;
+            color: #F8FAFC;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-10">
+    <div class="glass-panel rounded-xl p-6 max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-semibold">Specialist Management</h1>
+            <button class="px-4 py-2 bg-green-600 rounded">Add Specialist</button>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b border-white/10">
+                        <th class="pb-4 pr-4">specialistID</th>
+                        <th class="pb-4 pr-4">specialistNumber</th>
+                        <th class="pb-4 pr-4">specialistName</th>
+                        <th class="pb-4 pr-4">specialistExpertise</th>
+                        <th class="pb-4 pr-4">Status</th>
+                        <th class="pb-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="border-b border-white/10 hover:bg-white/5">
+                        <td class="py-4 pr-4">101</td>
+                        <td class="py-4 pr-4">SPEC001</td>
+                        <td class="py-4 pr-4">Jane Smith</td>
+                        <td class="py-4 pr-4">Counseling</td>
+                        <td class="py-4 pr-4">Active</td>
+                        <td class="py-4 flex gap-2">
+                            <button class="px-3 py-1 bg-blue-600 rounded text-sm">Edit</button>
+                            <button class="px-3 py-1 bg-red-600 rounded text-sm">Disable</button>
+                        </td>
+                    </tr>
+                    <tr class="border-b border-white/10 hover:bg-white/5">
+                        <td class="py-4 pr-4">102</td>
+                        <td class="py-4 pr-4">SPEC002</td>
+                        <td class="py-4 pr-4">Mike Lee</td>
+                        <td class="py-4 pr-4">Therapy</td>
+                        <td class="py-4 pr-4">Active</td>
+                        <td class="py-4 flex gap-2">
+                            <button class="px-3 py-1 bg-blue-600 rounded text-sm">Edit</button>
+                            <button class="px-3 py-1 bg-red-600 rounded text-sm">Disable</button>
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-white/5">
+                        <td class="py-4 pr-4">103</td>
+                        <td class="py-4 pr-4">SPEC003</td>
+                        <td class="py-4 pr-4">Lisa Wang</td>
+                        <td class="py-4 pr-4">Coaching</td>
+                        <td class="py-4 pr-4">Disabled</td>
+                        <td class="py-4 flex gap-2">
+                            <button class="px-3 py-1 bg-blue-600 rounded text-sm">Edit</button>
+                            <button class="px-3 py-1 bg-green-600 rounded text-sm">Enable</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

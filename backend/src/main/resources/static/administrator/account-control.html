@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Control | Admin Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body{font-family:'Inter',sans-serif;background-color:#0F172A;color:#F8FAFC;}
+        .glass-panel{background:rgba(30,41,59,0.7);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.1);}
+    </style>
+</head>
+<body class="min-h-screen p-10">
+    <div class="glass-panel rounded-xl p-6 max-w-6xl mx-auto">
+        <h1 class="text-2xl font-semibold mb-6">Account Control</h1>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b border-white/10">
+                        <th class="pb-4 pr-4">User ID</th>
+                        <th class="pb-4 pr-4">User Type</th>
+                        <th class="pb-4 pr-4">Name</th>
+                        <th class="pb-4 pr-4">Status</th>
+                        <th class="pb-4">Operation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="border-b border-white/10 hover:bg-white/5">
+                        <td class="py-4 pr-4">1001</td>
+                        <td class="py-4 pr-4">Customer</td>
+                        <td class="py-4 pr-4">John Doe</td>
+                        <td class="py-4 pr-4">Active</td>
+                        <td class="py-4">
+                            <button class="px-3 py-1 bg-red-600 rounded text-sm">Disable</button>
+                        </td>
+                    </tr>
+                    <tr class="border-b border-white/10 hover:bg-white/5">
+                        <td class="py-4 pr-4">2001</td>
+                        <td class="py-4 pr-4">Specialist</td>
+                        <td class="py-4 pr-4">Jane Smith</td>
+                        <td class="py-4 pr-4">Disabled</td>
+                        <td class="py-4">
+                            <button class="px-3 py-1 bg-green-600 rounded text-sm">Enable</button>
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-white/5">
+                        <td class="py-4 pr-4">3001</td>
+                        <td class="py-4 pr-4">Administrator</td>
+                        <td class="py-4 pr-4">Admin User</td>
+                        <td class="py-4 pr-4">Active</td>
+                        <td class="py-4">
+                            <button class="px-3 py-1 bg-gray-600 rounded text-sm" disabled>Default</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

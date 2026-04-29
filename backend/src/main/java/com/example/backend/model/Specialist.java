@@ -15,6 +15,10 @@ public class Specialist {
     private String specialistExpertise;
 
     // Getters and Setters...
+    public String getSpecialistNumber() { return specialistNumber; }
+    public void setSpecialistNumber(String specialistNumber) { this.specialistNumber = specialistNumber; }
+    public String getSpecialistPassword() { return specialistPassword; }
+    public void setSpecialistPassword(String specialistPassword) { this.specialistPassword = specialistPassword; }
     public Integer getSpecialistID() { return specialistID; }
     public void setSpecialistID(Integer specialistID) { this.specialistID = specialistID; }
     public String getSpecialistName() { return specialistName; }

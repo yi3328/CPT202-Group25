@@ -39,7 +39,7 @@ public class AppointmentController {
         slot.setIsBooked(1); 
         availabilityRepository.save(slot);
         
-        Appointment savedAppt = appointmentRepository.save(request);
+        appointmentRepository.save(request);
 
         Order newOrder = new Order();
         newOrder.setCustomerID(request.getCustomerID());
@@ -62,7 +62,7 @@ public class AppointmentController {
             bookingData.put("timeSlot", appt.getTimeSlot());
             
             Optional<Specialist> specialist = specialistRepository.findById(appt.getSpecialistID());
-            bookingData.put("specialistName", specialist.isPresent() ? specialist.get().getSpecialistName() : "Specialist");
+            bookingData.put("specialistName", specialist.map(Specialist::getSpecialistName).orElse("Specialist"));
 
             // 🛠️ 终极修复：通过客户ID和专家ID寻找最新的订单，完美避开 ID 脱节问题
             Optional<Order> order = orderRepository.findFirstByCustomerIDAndSpecialistIDOrderByOrderIDDesc(
@@ -86,7 +86,7 @@ public class AppointmentController {
     @DeleteMapping("/cancel/{appointmentID}")
     @Transactional
     public ResponseEntity<String> cancelAppointment(@PathVariable Integer appointmentID) {
-        Optional<Appointment> appointmentOpt = appointmentRepository.findById(appointmentID);
+        var appointmentOpt = appointmentRepository.findById(appointmentID);
         if (appointmentOpt.isEmpty()) return ResponseEntity.badRequest().body("Error: Appointment not found.");
         
         Appointment appointment = appointmentOpt.get();

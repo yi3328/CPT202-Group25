@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication | Specialist Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #F8FAFC; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-8">
+
+    <div class="glass-panel w-full max-w-md rounded-3xl p-10 relative overflow-hidden">
+        <div class="text-3xl font-extrabold tracking-tighter italic text-center mb-10">
+            SPECIALIST<span class="text-sky-400">HUB.</span>
+        </div>
+
+        <div class="flex bg-slate-900 rounded-lg p-1 mb-8">
+            <button onclick="toggleMode('login')" id="tabLogin" class="flex-1 py-2 rounded-md font-bold text-sm bg-sky-500 text-slate-900 transition">Log In</button>
+            <button onclick="toggleMode('register')" id="tabRegister" class="flex-1 py-2 rounded-md font-bold text-sm text-slate-400 hover:text-white transition">Register</button>
+        </div>
+
+        <div id="loginForm" class="space-y-5 block">
+            <div>
+                <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">Customer Number</label>
+                <input type="text" id="loginNumber" class="w-full bg-slate-800 border-none rounded-lg p-3 text-white outline-none focus:ring-1 focus:ring-sky-500" placeholder="e.g. CUST001">
+            </div>
+            <div>
+                <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">Password</label>
+                <input type="password" id="loginPassword" class="w-full bg-slate-800 border-none rounded-lg p-3 text-white outline-none focus:ring-1 focus:ring-sky-500" placeholder="••••••••">
+            </div>
+            <button onclick="handleLogin()" class="w-full mt-4 py-4 bg-sky-500 hover:bg-sky-400 text-slate-900 rounded-lg font-bold transition">Sign In to Dashboard</button>
+        </div>
+
+        <div id="registerForm" class="space-y-5 hidden">
+            <div>
+                <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">Create Customer Number</label>
+                <input type="text" id="regNumber" class="w-full bg-slate-800 border-none rounded-lg p-3 text-white outline-none focus:ring-1 focus:ring-sky-500" placeholder="Must be unique">
+            </div>
+            <div>
+                <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">Full Name</label>
+                <input type="text" id="regName" class="w-full bg-slate-800 border-none rounded-lg p-3 text-white outline-none focus:ring-1 focus:ring-sky-500" placeholder="e.g. John Doe">
+            </div>
+            <div>
+                <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">Password</label>
+                <input type="password" id="regPassword" class="w-full bg-slate-800 border-none rounded-lg p-3 text-white outline-none focus:ring-1 focus:ring-sky-500" placeholder="••••••••">
+            </div>
+            <button onclick="handleRegister()" class="w-full mt-4 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-lg font-bold transition">Create Account</button>
+        </div>
+    </div>
+
+    <script>
+        // --- UI Toggling Logic ---
+        function toggleMode(mode) {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const tabLogin = document.getElementById('tabLogin');
+            const tabRegister = document.getElementById('tabRegister');
+
+            if (mode === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                tabLogin.className = 'flex-1 py-2 rounded-md font-bold text-sm bg-sky-500 text-slate-900 transition';
+                tabRegister.className = 'flex-1 py-2 rounded-md font-bold text-sm text-slate-400 hover:text-white transition';
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                tabRegister.className = 'flex-1 py-2 rounded-md font-bold text-sm bg-emerald-500 text-slate-900 transition';
+                tabLogin.className = 'flex-1 py-2 rounded-md font-bold text-sm text-slate-400 hover:text-white transition';
+            }
+        }
+
+        // --- API Integration ---
+        async function handleRegister() {
+            const num = document.getElementById('regNumber').value;
+            const name = document.getElementById('regName').value;
+            const pass = document.getElementById('regPassword').value;
+
+            if (!num || !name || !pass) return alert("Please fill all fields.");
+
+            try {
+                const response = await fetch('http://localhost:8081/api/customers/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ customerNumber: num, customerName: name, customerPassword: pass })
+                });
+                
+                if (response.ok) {
+                    alert("Account created successfully! Please log in.");
+                    toggleMode('login'); // Switch back to login view
+                    document.getElementById('loginNumber').value = num; // Auto-fill username
+                } else {
+                    alert(await response.text());
+                }
+            } catch (err) { alert("Server error."); }
+        }
+
+        async function handleLogin() {
+            const num = document.getElementById('loginNumber').value;
+            const pass = document.getElementById('loginPassword').value;
+
+            if (!num || !pass) return alert("Please enter credentials.");
+
+            try {
+                const response = await fetch('http://localhost:8081/api/customers/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ customerNumber: num, customerPassword: pass })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // 核心魔法：把真实的 ID 存在浏览器本地仓库里！
+                    localStorage.setItem('customerID', data.customerID);
+                    localStorage.setItem('customerName', data.customerName);
+                    
+                    alert(`Welcome back, ${data.customerName}!`);
+                    
+                    // 跳转到大厅页面
+                    window.location.href = 'specialist_search.html';
+                } else {
+                    alert(await response.text());
+                }
+            } catch (err) { alert("Server error."); }
+        }
+    </script>
+</body>
+</html>

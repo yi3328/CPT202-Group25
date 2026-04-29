@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Generate | Admin Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body{font-family:'Inter',sans-serif;background-color:#0F172A;color:#F8FAFC;}
+        .glass-panel{background:rgba(30,41,59,0.7);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.1);}
+    </style>
+</head>
+<body class="min-h-screen p-10">
+    <div class="glass-panel rounded-xl p-6 max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-semibold">Report Generate</h1>
+            <button class="px-4 py-2 bg-green-600 rounded">Export Report</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div>
+                <label class="block mb-2 text-sm">Report Type</label>
+                <select class="w-full px-3 py-2 bg-slate-800 rounded border border-slate-700">
+                    <option>Order Report</option>
+                    <option>User Report</option>
+                    <option>Specialist Report</option>
+                    <option>Revenue Report</option>
+                </select>
+            </div>
+            <div>
+                <label class="block mb-2 text-sm">Start Date</label>
+                <input type="date" class="w-full px-3 py-2 bg-slate-800 rounded border border-slate-700">
+            </div>
+            <div>
+                <label class="block mb-2 text-sm">End Date</label>
+                <input type="date" class="w-full px-3 py-2 bg-slate-800 rounded border border-slate-700">
+            </div>
+            <div>
+                <label class="block mb-2 text-sm">Format</label>
+                <select class="w-full px-3 py-2 bg-slate-800 rounded border border-slate-700">
+                    <option>Excel</option>
+                    <option>CSV</option>
+                    <option>PDF</option>
+                </select>
+            </div>
+        </div>
+        <div class="glass-panel rounded-lg p-5 mb-6">
+            <h2 class="text-lg font-medium mb-4">Report Preview</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-white/10">
+                            <th class="pb-4 pr-4">Report ID</th>
+                            <th class="pb-4 pr-4">Type</th>
+                            <th class="pb-4 pr-4">Date Range</th>
+                            <th class="pb-4 pr-4">Generate Time</th>
+                            <th class="pb-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-white/10 hover:bg-white/5">
+                            <td class="py-4 pr-4">REP001</td>
+                            <td class="py-4 pr-4">Order Report</td>
+                            <td class="py-4 pr-4">2025-04-01 To 2025-04-30</td>
+                            <td class="py-4 pr-4">2025-04-28 16:20</td>
+                            <td class="py-4">Completed</td>
+                        </tr>
+                        <tr class="hover:bg-white/5">
+                            <td class="py-4 pr-4">REP002</td>
+                            <td class="py-4 pr-4">User Report</td>
+                            <td class="py-4 pr-4">2025-03-01 To 2025-03-31</td>
+                            <td class="py-4 pr-4">2025-04-01 09:15</td>
+                            <td class="py-4">Completed</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
