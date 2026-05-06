@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Specialist Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: url('background.jpg') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .circle-btn {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .circle-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.4);
+        }
+        .specialist-btn {
+            background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+            border: 3px solid rgba(255,255,255,0.2);
+        }
+        .specialist-btn:hover {
+            border-color: rgba(255,255,255,0.4);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+        }
+        .user-btn {
+            background: linear-gradient(135deg, #10B981 0%, #047857 100%);
+            border: 3px solid rgba(255,255,255,0.2);
+        }
+        .user-btn:hover {
+            border-color: rgba(255,255,255,0.4);
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
+        }
+        .admin-btn {
+            background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+            border: 3px solid rgba(255,255,255,0.2);
+        }
+        .admin-btn:hover {
+            border-color: rgba(255,255,255,0.4);
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-8">
+    <!-- Main Content Card -->
+    <div class="bg-white/95 rounded-3xl shadow-xl p-16">
+        <!-- Logo -->
+        <div class="text-center mb-16">
+            <h1 class="text-5xl font-extrabold tracking-tighter italic mb-2 text-slate-800">
+                SPECIALIST<span class="text-sky-500">HUB.</span>
+            </h1>
+            <p class="text-slate-500 text-lg">Professional Consultation Platform</p>
+        </div>
+
+        <!-- Circle Buttons -->
+        <div class="flex gap-16 flex-wrap justify-center">
+            <!-- Specialist -->
+            <div class="text-center">
+                <div class="specialist-btn circle-btn" onclick="goToSpecialist()">
+                    <svg class="w-12 h-12 mb-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <span class="text-white text-xl font-bold">SPECIALIST</span>
+                    <span class="text-white/70 text-sm mt-1">Login / Register</span>
+                </div>
+                <p class="text-slate-500 mt-6 text-sm">Are you a specialist?</p>
+            </div>
+
+            <!-- User / Customer -->
+            <div class="text-center">
+                <div class="user-btn circle-btn" onclick="goToUser()">
+                    <svg class="w-12 h-12 mb-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                    <span class="text-white text-xl font-bold">USER</span>
+                    <span class="text-white/70 text-sm mt-1">Login / Register</span>
+                </div>
+                <p class="text-slate-500 mt-6 text-sm">Are you a customer?</p>
+            </div>
+
+            <!-- Admin -->
+            <div class="text-center">
+                <div class="admin-btn circle-btn" onclick="goToAdmin()">
+                    <svg class="w-12 h-12 mb-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                    </svg>
+                    <span class="text-white text-xl font-bold">ADMIN</span>
+                    <span class="text-white/70 text-sm mt-1">Management Portal</span>
+                </div>
+                <p class="text-slate-500 mt-6 text-sm">Administrator access</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="absolute bottom-8 text-center">
+        <p class="text-slate-500 text-sm">© 2026 Specialist Hub. All rights reserved.</p>
+    </div>
+
+    <script>
+        function goToSpecialist() {
+            window.location.href = 'specialist/specialist-login.html';
+        }
+
+        function goToUser() {
+            window.location.href = 'customer/login.html';
+        }
+
+        function goToAdmin() {
+            window.location.href = 'admin/admin-login.html';
+        }
+    </script>
+</body>
+</html>

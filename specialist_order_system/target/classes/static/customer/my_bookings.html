@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings | Specialist Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #f4f6f8; }
+        .glass-card { background: #ffffff; backdrop-filter: blur(12px); border: 2px solid #e2e8f0; }
+        .modal-bg { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); }
+    </style>
+</head>
+<body class="min-h-screen relative">
+
+    <nav class="p-8 flex justify-between items-center">
+        <div class="text-2xl font-extrabold tracking-tighter italic text-slate-800">SPECIALIST<span class="text-sky-500">HUB.</span></div>
+        <div class="space-x-8 text-sm uppercase tracking-widest font-bold">
+            <a href="specialist_search.html" class="text-slate-500 hover:text-sky-500 transition">Book New</a>
+            <a href="#" class="text-sky-500 border-b-2 border-sky-500 pb-1">My Dashboard</a>
+            <a href="#" onclick="openPasswordModal()" class="text-slate-500 hover:text-sky-500 transition">Change Password</a>
+            <a href="#" onclick="localStorage.clear(); window.location.href='login.html'" class="text-red-500 hover:text-red-400 transition">Logout</a>
+        </div>
+    </nav>
+
+    <header class="max-w-7xl mx-auto px-8 py-12">
+        <h1 class="text-5xl font-extrabold tracking-tight mb-4 text-slate-800">Your <span class="text-sky-500">Appointments.</span></h1>
+        <p class="text-slate-500 text-lg font-light">Manage your consultations and complete pending payments.</p>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-8 pb-20">
+        <div id="loading" class="text-sky-500 tracking-widest uppercase text-sm font-bold">Loading your schedule...</div>
+        <div id="bookingList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 hidden"></div>
+        <div id="noBookings" class="hidden text-center py-20 border-2 border-dashed border-slate-300 rounded-2xl bg-white">
+            <p class="text-slate-500 text-xl font-light mb-6">You have no upcoming appointments.</p>
+        </div>
+    </main>
+
+    <div id="paymentModal" class="fixed inset-0 modal-bg flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white border-2 border-slate-200 rounded-2xl p-8 max-w-md w-full shadow-xl" id="modalContent">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">Secure Checkout</h2>
+                <button onclick="closePaymentModal()" class="text-slate-400 hover:text-slate-600">&times;</button>
+            </div>
+
+            <div class="bg-slate-100 p-4 rounded-xl mb-6 border-2 border-slate-200">
+                <p class="text-sm text-slate-500">Total Amount Due</p>
+                <p class="text-3xl font-bold text-emerald-500">$150.00</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">Card Number</label>
+                    <input type="text" class="w-full bg-slate-100 border-2 border-slate-200 rounded-lg p-3 text-slate-700 outline-none" value="**** **** **** 4242" disabled>
+                </div>
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">Expiry</label>
+                        <input type="text" class="w-full bg-slate-100 border-2 border-slate-200 rounded-lg p-3 text-slate-700 outline-none" value="12/28" disabled>
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">CVC</label>
+                        <input type="text" class="w-full bg-slate-100 border-2 border-slate-200 rounded-lg p-3 text-slate-700 outline-none" value="***" disabled>
+                    </div>
+                </div>
+            </div>
+
+            <input type="hidden" id="currentPayingOrderID">
+
+            <button onclick="processPayment()" class="w-full mt-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white rounded-lg font-bold transition border-2 border-emerald-500 flex justify-center items-center">
+                <span id="payBtnText">Confirm Payment</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="passwordModal" class="fixed inset-0 modal-bg flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white border-2 border-slate-200 rounded-2xl p-8 max-w-md w-full shadow-xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">Change Password</h2>
+                <button onclick="closePasswordModal()" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">Current Password</label>
+                    <input type="password" id="currentPassword" class="w-full bg-slate-100 border-2 border-slate-200 rounded-lg p-3 text-slate-700 outline-none focus:border-sky-400" placeholder="Enter current password">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">New Password</label>
+                    <input type="password" id="newPassword" class="w-full bg-slate-100 border-2 border-slate-200 rounded-lg p-3 text-slate-700 outline-none focus:border-sky-400" placeholder="Enter new password">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">Confirm New Password</label>
+                    <input type="password" id="confirmPassword" class="w-full bg-slate-100 border-2 border-slate-200 rounded-lg p-3 text-slate-700 outline-none focus:border-sky-400" placeholder="Confirm new password">
+                </div>
+            </div>
+
+            <div id="passwordMsg" class="mt-4 text-sm hidden"></div>
+
+            <button onclick="changePassword()" class="w-full mt-6 py-3 bg-sky-500 hover:bg-sky-600 text-white rounded-lg font-bold transition">Update Password</button>
+        </div>
+    </div>
+
+    <script>
+        const currentCustomerID = localStorage.getItem('customerID');
+        if (!currentCustomerID) {
+            alert("Please log in first!");
+            window.location.href = 'login.html';
+        }
+
+        async function fetchMyBookings() {
+            try {
+                const response = await fetch(`http://localhost:8081/api/appointments/customer/${currentCustomerID}`);
+                const data = await response.json();
+
+                document.getElementById('loading').classList.add('hidden');
+                const list = document.getElementById('bookingList');
+                list.innerHTML = '';
+
+                if (data.length === 0) {
+                    document.getElementById('noBookings').classList.remove('hidden');
+                } else {
+                    document.getElementById('noBookings').classList.add('hidden');
+                    list.classList.remove('hidden');
+
+                    data.forEach(booking => {
+                        const status = booking.orderStatus;
+                        const isUnpaid = status === 1;
+                        const isUnconfirmed = status === 2;
+                        const isConfirmed = status === 3;
+                        const isCancelled = status === 5;
+                        const isCompleted = status === 4;
+                        const isAutoCancelled = status === 6;
+
+                        const statusText = isUnpaid ? 'UNPAID' : isUnconfirmed ? 'UNCONFIRMED' : isConfirmed ? 'CONFIRMED' : isCompleted ? 'COMPLETED' : isAutoCancelled ? 'AUTO-CANCEL' : isCancelled ? 'CANCELLED' : 'UNKNOWN';
+                        const statusColor = isUnpaid ? 'amber' : isUnconfirmed ? 'yellow' : isConfirmed ? 'blue' : isAutoCancelled ? 'red' : isCancelled ? 'red' : 'slate';
+
+                        const countdownHTML = isUnpaid && booking.createdAt
+                            ? `<div class="text-center text-amber-500 text-xs mt-1" id="countdown-${booking.orderID}"></div>`
+                            : '';
+
+                        const paymentUI = isUnpaid
+                            ? `<button onclick="openPaymentModal(${booking.orderID})" class="w-full py-2 bg-emerald-100 text-emerald-600 border-2 border-emerald-200 rounded-lg hover:bg-emerald-500 hover:text-white transition font-bold text-sm">Pay Now ($150)</button>`
+                            : isUnconfirmed
+                            ? `<div class="w-full py-2 text-center text-yellow-600 text-sm font-bold uppercase tracking-widest bg-yellow-100 rounded-lg border-2 border-yellow-200">Awaiting Confirmation</div>`
+                            : `<div class="w-full py-2 text-center text-slate-500 text-sm font-bold uppercase tracking-widest bg-slate-100 rounded-lg border-2 border-slate-200">Payment Complete</div>`;
+
+                        const cancelBtnDisabled = isCancelled || isCompleted || isAutoCancelled;
+                        const cancelBtn = cancelBtnDisabled
+                            ? `<button disabled class="w-full py-2 bg-slate-100 text-slate-400 border-2 border-slate-200 rounded-lg font-bold text-sm cursor-not-allowed opacity-50">Cancel Booking</button>`
+                            : `<button onclick="cancelBooking(${booking.appointmentID})" class="w-full py-2 bg-red-100 text-red-500 border-2 border-red-200 rounded-lg hover:bg-red-500 hover:text-white transition font-bold text-sm">Cancel Booking</button>`;
+
+                        list.innerHTML += `
+                            <div class="glass-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between">
+                                <div>
+                                    <div class="absolute top-0 right-0 w-2 h-full ${isUnpaid ? 'bg-amber-400' : 'bg-emerald-400'}"></div>
+                                    <div class="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 class="text-xl font-bold text-slate-800">${booking.specialistName}</h3>
+                                            <p class="text-xs text-sky-500 uppercase tracking-widest mt-1">Consultation</p>
+                                        </div>
+                                        <span class="px-3 py-1 bg-${statusColor}-100 text-${statusColor}-600 text-xs rounded-full font-bold border-2 border-${statusColor}-200">
+                                            ${statusText}
+                                        </span>
+                                    </div>
+                                    <div class="space-y-3 text-sm text-slate-600 mt-6 mb-6 bg-slate-100 p-4 rounded-xl border-2 border-slate-200">
+                                        <div class="flex justify-between"><span class="text-slate-500">Date</span><span class="font-semibold text-slate-700">${booking.date}</span></div>
+                                        <div class="flex justify-between"><span class="text-slate-500">Time</span><span class="font-semibold text-slate-700">${booking.timeSlot}</span></div>
+                                        <div class="flex justify-between"><span class="text-slate-500">Room</span><span class="font-semibold text-slate-700">${booking.roomNumber || 'TBD'}</span></div>
+                                    </div>
+                                </div>
+                                <div class="space-y-3">
+                                    ${paymentUI}
+                                    ${countdownHTML}
+                                    ${cancelBtn}
+                                </div>
+                            </div>
+                        `;
+
+                        if (isUnpaid && booking.createdAt) {
+                            startCountdown(booking.orderID, booking.createdAt);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+            }
+        }
+
+        function openPaymentModal(orderID) {
+            document.getElementById('currentPayingOrderID').value = orderID;
+            const modal = document.getElementById('paymentModal');
+            const content = document.getElementById('modalContent');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closePaymentModal() {
+            const modal = document.getElementById('paymentModal');
+            const content = document.getElementById('modalContent');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        async function processPayment() {
+            const orderID = document.getElementById('currentPayingOrderID').value;
+            const btnText = document.getElementById('payBtnText');
+
+            btnText.innerText = "Processing...";
+
+            const paymentData = {
+                orderID: parseInt(orderID),
+                paymentAmount: 150.00,
+                paymentMethod: 1
+            };
+
+            try {
+                const response = await fetch('http://localhost:8081/api/payments/pay', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(paymentData)
+                });
+
+                if (response.ok) {
+                    btnText.innerText = "Payment Successful!";
+                    setTimeout(() => {
+                        closePaymentModal();
+                        fetchMyBookings();
+                        btnText.innerText = "Confirm Payment";
+                    }, 1000);
+                } else {
+                    alert("Payment failed.");
+                    btnText.innerText = "Confirm Payment";
+                }
+            } catch (error) {
+                alert("Connection error.");
+                btnText.innerText = "Confirm Payment";
+            }
+        }
+
+        async function cancelBooking(appointmentID) {
+            if (!confirm("Are you sure you want to cancel this appointment?")) return;
+            try {
+                const response = await fetch(`http://localhost:8081/api/appointments/cancel/${appointmentID}`, { method: 'DELETE' });
+                if (response.ok) {
+                    document.getElementById('loading').classList.remove('hidden');
+                    document.getElementById('bookingList').classList.add('hidden');
+                    fetchMyBookings();
+                } else {
+                    alert(await response.text());
+                }
+            } catch (error) {
+                alert("Server error.");
+            }
+        }
+
+        function startCountdown(orderID, createdAt) {
+            const countdownEl = document.getElementById(`countdown-${orderID}`);
+            if (!countdownEl) return;
+
+            const createdTime = new Date(createdAt).getTime();
+            const expireTime = createdTime + 30000;
+
+            function updateCountdown() {
+                const now = Date.now();
+                const remaining = Math.max(0, expireTime - now);
+
+                if (remaining === 0) {
+                    countdownEl.innerHTML = '<span class="text-red-500 font-bold">Expired!</span>';
+                    setTimeout(() => {
+                        document.getElementById('loading').classList.remove('hidden');
+                        document.getElementById('bookingList').classList.add('hidden');
+                        fetchMyBookings();
+                    }, 1000);
+                    return;
+                }
+
+                const seconds = Math.ceil(remaining / 1000);
+                countdownEl.innerHTML = `<span class="text-amber-500 font-bold">Auto-cancel in ${seconds}s</span>`;
+                setTimeout(updateCountdown, 1000);
+            }
+
+            updateCountdown();
+        }
+
+        function openPasswordModal() {
+            const modal = document.getElementById('passwordModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.remove('opacity-0'), 10);
+            document.getElementById('passwordMsg').classList.add('hidden');
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        }
+
+        function closePasswordModal() {
+            const modal = document.getElementById('passwordModal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        async function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const msgEl = document.getElementById('passwordMsg');
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                msgEl.textContent = 'Please fill in all fields';
+                msgEl.className = 'mt-4 text-sm text-red-500';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                msgEl.textContent = 'New passwords do not match';
+                msgEl.className = 'mt-4 text-sm text-red-500';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                msgEl.textContent = 'New password must be at least 6 characters';
+                msgEl.className = 'mt-4 text-sm text-red-500';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:8081/api/customers/${currentCustomerID}/password`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+
+                const text = await response.text();
+                if (response.ok) {
+                    msgEl.textContent = 'Password updated successfully!';
+                    msgEl.className = 'mt-4 text-sm text-green-500';
+                    msgEl.classList.remove('hidden');
+                    setTimeout(closePasswordModal, 1500);
+                } else {
+                    msgEl.textContent = text;
+                    msgEl.className = 'mt-4 text-sm text-red-500';
+                    msgEl.classList.remove('hidden');
+                }
+            } catch (e) {
+                msgEl.textContent = 'Connection error';
+                msgEl.className = 'mt-4 text-sm text-red-500';
+                msgEl.classList.remove('hidden');
+            }
+        }
+
+        fetchMyBookings();
+    </script>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ongoing Orders | Specialist Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            color: #1e293b;
+            min-height: 100vh;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .main-content{
+            margin-left:240px;
+            padding:40px;
+        }
+        .btn-logout {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 12px 20px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Side Menu -->
+    <div class="sidebar" style="background: #ffffff; border-right: 1px solid #e2e8f0; width: 240px; height: 100vh; position: fixed; padding: 30px 20px;">
+        <a href="specialist-dashboard.html" id="dashboardBtn" class="flex items-center gap-2 px-4 py-3 rounded-xl text-slate-800 bg-white border border-slate-200 transition hover:bg-blue-500 hover:text-white hover:border-blue-500">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            Specialist Panel
+        </a>
+
+        <div class="mt-10 space-y-2">
+            <div class="text-xs text-slate-400 uppercase tracking-wider mb-4">Menu</div>
+            <a href="ongoing-orders.html" id="ongoingBtn" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-white text-slate-700 border border-slate-200 transition hover:bg-blue-500 hover:text-white hover:border-blue-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+                Ongoing Orders
+            </a>
+            <a href="pending-orders.html" id="pendingBtn" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-white text-slate-700 border border-slate-200 transition hover:bg-blue-500 hover:text-white hover:border-blue-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Pending Orders
+            </a>
+            <a href="completed-orders.html" id="completedBtn" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-white text-slate-700 border border-slate-200 transition hover:bg-blue-500 hover:text-white hover:border-blue-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Completed Orders
+            </a>
+        </div>
+
+        <div class="mt-auto pt-6 border-t border-slate-200">
+            <button onclick="logout()" class="btn-logout w-full">
+                Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="glass rounded-3xl p-10 mb-8">
+            <h1 class="text-3xl font-bold mb-2 text-slate-800">Ongoing Orders</h1>
+            <p class="text-slate-500">Orders that are confirmed but not yet completed</p>
+        </div>
+
+        <div id="loading" class="text-center text-slate-400 py-10">Loading...</div>
+        <div id="emptyMsg" class="hidden text-center text-slate-400 py-10">
+            <p class="text-xl mb-2 text-slate-600">No ongoing orders</p>
+            <p class="text-slate-500">All your orders have been completed</p>
+        </div>
+        <div id="orderList" class="space-y-4"></div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div id="detailsModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl p-8 max-w-lg w-full mx-4 shadow-2xl border border-slate-200">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">Order Details</h2>
+                <button onclick="closeDetailsModal()" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
+            </div>
+            <div id="detailsContent" class="space-y-4">
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <h3 class="text-xs uppercase tracking-widest text-slate-500 mb-3 font-bold">Order Information</h3>
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div><span class="text-slate-500">Order ID:</span> <span class="font-semibold text-slate-700" id="detailOrderID">-</span></div>
+                        <div><span class="text-slate-500">Status:</span> <span id="detailStatus" class="font-semibold">-</span></div>
+                        <div><span class="text-slate-500">Created:</span> <span class="font-semibold text-slate-700" id="detailCreated">-</span></div>
+                        <div><span class="text-slate-500">Paid At:</span> <span class="font-semibold text-slate-700" id="detailPaid">-</span></div>
+                    </div>
+                </div>
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <h3 class="text-xs uppercase tracking-widest text-slate-500 mb-3 font-bold">Appointment Info</h3>
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div><span class="text-slate-500">Date:</span> <span class="font-semibold text-slate-700" id="detailDate">-</span></div>
+                        <div><span class="text-slate-500">Time:</span> <span class="font-semibold text-slate-700" id="detailTime">-</span></div>
+                    </div>
+                </div>
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <h3 class="text-xs uppercase tracking-widest text-slate-500 mb-3 font-bold">Customer Info</h3>
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div><span class="text-slate-500">Name:</span> <span class="font-semibold text-slate-700" id="detailCustName">-</span></div>
+                        <div><span class="text-slate-500">Account:</span> <span class="font-semibold text-slate-700" id="detailCustNumber">-</span></div>
+                    </div>
+                </div>
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <h3 class="text-xs uppercase tracking-widest text-slate-500 mb-3 font-bold">Payment Info</h3>
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div><span class="text-slate-500">Amount:</span> <span class="font-semibold text-emerald-600" id="detailAmount">-</span></div>
+                        <div><span class="text-slate-500">Status:</span> <span id="detailPayStatus" class="font-semibold">-</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="closeDetailsModal()" class="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8081/api/specialists';
+        const specialist = JSON.parse(sessionStorage.getItem('specialist') || 'null');
+
+        if (!specialist) {
+            window.location.href = 'specialist-login.html';
+        } else {
+            document.getElementById('ongoingBtn').classList.add('bg-blue-500');
+            loadOrders();
+        }
+
+        async function loadOrders() {
+            try {
+                const response = await fetch(`${API_BASE}/${specialist.specialistID}/search?status=Confirmed&_=${Date.now()}`, { cache: 'no-cache' });
+                const orders = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (orders.length === 0) {
+                    document.getElementById('emptyMsg').classList.remove('hidden');
+                    return;
+                }
+
+                const container = document.getElementById('orderList');
+                orders.forEach(order => {
+                    const div = document.createElement('div');
+                    div.className = 'glass rounded-xl p-6';
+                    div.innerHTML = `
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-slate-800">${order.customerName}</h3>
+                                <p class="text-slate-500 text-sm">Order #${order.orderID} | Appointment #${order.appointmentID}</p>
+                            </div>
+                            <span class="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm font-medium">Confirmed</span>
+                        </div>
+                        <div class="flex items-center gap-4 text-slate-600 mb-4">
+                            <span>${order.date}</span>
+                            <span>${order.timeSlot}</span>
+                        </div>
+                        <div class="flex justify-end gap-3">
+                            <button onclick="viewDetails(${order.orderID})" class="px-4 py-2 bg-slate-100 text-slate-600 hover:bg-slate-500 hover:text-white border border-slate-200 hover:border-slate-500 rounded-lg font-medium transition text-sm">
+                                View Details
+                            </button>
+                            <button onclick="completeOrder(${order.orderID})" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition text-sm">
+                                Mark as Completed
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (e) {
+                document.getElementById('loading').textContent = 'Failed to load orders';
+            }
+        }
+
+        async function completeOrder(orderID) {
+            if (!confirm('Are you sure you want to mark this order as completed?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/orders/${orderID}/complete`, { method: 'PUT' });
+                if (response.ok) {
+                    alert('Order marked as completed!');
+                    loadOrders();
+                } else {
+                    const err = await response.text();
+                    alert('Failed: ' + err);
+                }
+            } catch (e) {
+                alert('Connection error');
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('specialist');
+            window.location.href = 'specialist-login.html';
+        }
+
+        function openDetailsModal() {
+            const modal = document.getElementById('detailsModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.remove('opacity-0'), 10);
+        }
+
+        function closeDetailsModal() {
+            const modal = document.getElementById('detailsModal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        async function viewDetails(orderID) {
+            try {
+                const response = await fetch(`${API_BASE}/orders/${orderID}/details`);
+                const data = await response.json();
+
+                document.getElementById('detailOrderID').textContent = '#' + data.orderID;
+                document.getElementById('detailDate').textContent = data.date;
+                document.getElementById('detailTime').textContent = data.timeSlot;
+                document.getElementById('detailCustName').textContent = data.customerName;
+                document.getElementById('detailCustNumber').textContent = data.customerNumber;
+                document.getElementById('detailAmount').textContent = data.paymentAmount;
+                document.getElementById('detailCreated').textContent = data.createdAt ? data.createdAt.replace('T', ' ').substring(0, 19) : '-';
+                document.getElementById('detailPaid').textContent = data.paidAt ? data.paidAt.replace('T', ' ').substring(0, 19) : '-';
+
+                const statusEl = document.getElementById('detailStatus');
+                statusEl.textContent = data.statusText;
+                statusEl.className = 'font-semibold';
+                if (data.orderStatus === 2) {
+                    statusEl.classList.add('text-yellow-600');
+                } else if (data.orderStatus === 3) {
+                    statusEl.classList.add('text-blue-600');
+                } else if (data.orderStatus === 4) {
+                    statusEl.classList.add('text-emerald-600');
+                } else if (data.orderStatus === 5 || data.orderStatus === 6) {
+                    statusEl.classList.add('text-red-600');
+                }
+
+                const payStatusEl = document.getElementById('detailPayStatus');
+                if (data.paymentStatus === 1) {
+                    payStatusEl.textContent = 'Paid';
+                    payStatusEl.className = 'font-semibold text-emerald-600';
+                } else {
+                    payStatusEl.textContent = 'Unpaid';
+                    payStatusEl.className = 'font-semibold text-amber-600';
+                }
+
+                openDetailsModal();
+            } catch (e) {
+                alert('Failed to load order details');
+            }
+        }
+    </script>
+</body>
+</html>

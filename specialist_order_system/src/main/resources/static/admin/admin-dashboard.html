@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; min-height: 100vh; }
+        .glass-card { background: white; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="bg-white border-b border-slate-200 px-6 py-4">
+        <div class="flex justify-between items-center">
+            <div class="text-xl font-bold text-slate-800">SPECIALIST<span class="text-blue-500">HUB</span> <span class="text-slate-400 font-normal text-sm">Admin</span></div>
+            <div class="flex items-center gap-4">
+                <span class="text-slate-500 text-sm">Welcome, <span id="adminName" class="font-semibold text-slate-700">Admin</span></span>
+                <button onclick="logout()" class="px-4 py-2 bg-red-100 text-red-600 hover:bg-red-500 hover:text-white rounded-lg text-sm font-medium transition">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Tabs -->
+    <div class="bg-white border-b border-slate-200">
+        <div class="flex px-6">
+            <button onclick="switchTab('specialists')" id="tab-specialists" class="px-6 py-4 text-sm font-medium border-b-2 border-blue-500 text-blue-600">Specialists</button>
+            <button onclick="switchTab('customers')" id="tab-customers" class="px-6 py-4 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700">Customers</button>
+            <button onclick="switchTab('orders')" id="tab-orders" class="px-6 py-4 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700">Orders</button>
+            <button onclick="switchTab('timeslots')" id="tab-timeslots" class="px-6 py-4 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700">Time Slots</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="p-6">
+        <!-- Specialists Tab -->
+        <div id="content-specialists">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-slate-800">Specialist Management</h1>
+                <button onclick="openSpecialistModal()" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition text-sm">+ Add Specialist</button>
+            </div>
+
+            <!-- Search -->
+            <div class="mb-4">
+                <input type="text" id="searchSpecialists" onkeyup="searchSpecialists()" placeholder="Search by name, number, or expertise..." class="w-full max-w-md px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-blue-400">
+            </div>
+
+            <div class="glass-card rounded-xl overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Number</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Expertise</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Room</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="specialistsTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Customers Tab -->
+        <div id="content-customers" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-slate-800">Customer Management</h1>
+                <button onclick="openCustomerModal()" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition text-sm">+ Add Customer</button>
+            </div>
+
+            <!-- Search -->
+            <div class="mb-4">
+                <input type="text" id="searchCustomers" onkeyup="searchCustomers()" placeholder="Search by name or number..." class="w-full max-w-md px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-blue-400">
+            </div>
+
+            <div class="glass-card rounded-xl overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Number</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customersTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Orders Tab -->
+        <div id="content-orders" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-slate-800">Order Overview</h1>
+            </div>
+
+            <!-- Order Stats -->
+            <div class="grid grid-cols-7 gap-4 mb-6">
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <div class="text-2xl font-bold text-slate-700" id="statTotal">0</div>
+                    <div class="text-xs text-slate-500 mt-1">Total</div>
+                </div>
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <div class="text-2xl font-bold text-amber-500" id="statUnpaid">0</div>
+                    <div class="text-xs text-slate-500 mt-1">Unpaid</div>
+                </div>
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <div class="text-2xl font-bold text-yellow-500" id="statUnconfirmed">0</div>
+                    <div class="text-xs text-slate-500 mt-1">Unconfirmed</div>
+                </div>
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <div class="text-2xl font-bold text-blue-500" id="statConfirmed">0</div>
+                    <div class="text-xs text-slate-500 mt-1">Confirmed</div>
+                </div>
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <div class="text-2xl font-bold text-emerald-500" id="statCompleted">0</div>
+                    <div class="text-xs text-slate-500 mt-1">Completed</div>
+                </div>
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <div class="text-2xl font-bold text-red-400" id="statCancelled">0</div>
+                    <div class="text-xs text-slate-500 mt-1">Cancelled</div>
+                </div>
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <div class="text-2xl font-bold text-red-500" id="statAutoCancelled">0</div>
+                    <div class="text-xs text-slate-500 mt-1">Auto-Cancel</div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-xl overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Order ID</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Customer</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Specialist</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date & Time</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Amount</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Time Slots Tab -->
+        <div id="content-timeslots" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-slate-800">Time Slot Management</h1>
+                <button onclick="openTimeSlotModal()" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition text-sm">+ Add Time Slot</button>
+            </div>
+
+            <div class="mb-4">
+                <select id="filterSpecialist" onchange="loadTimeSlots()" class="px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-blue-400">
+                    <option value="">All Specialists</option>
+                </select>
+            </div>
+
+            <div class="glass-card rounded-xl overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Specialist</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Time Slot</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="timeSlotsTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Specialist Modal -->
+    <div id="specialistModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-slate-800" id="specialistModalTitle">Add Specialist</h2>
+                <button onclick="closeSpecialistModal()" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
+            </div>
+            <input type="hidden" id="specialistEditId">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm text-slate-600 mb-1">Specialist Number</label>
+                    <input id="specNumber" type="text" class="w-full bg-slate-100 border-2 border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-400">
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-600 mb-1">Password</label>
+                    <input id="specPassword" type="password" class="w-full bg-slate-100 border-2 border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-400" placeholder="Leave empty to keep current">
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-600 mb-1">Full Name</label>
+                    <input id="specName" type="text" class="w-full bg-slate-100 border-2 border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-400">
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-600 mb-1">Expertise</label>
+                    <select id="specExpertise" class="w-full bg-slate-100 border-2 border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-400">
+                        <option value="IT & Digital">IT & Digital</option>
+                        <option value="Legal & Risk">Legal & Risk</option>
+                        <option value="Finance & Strategy">Finance & Strategy</option>
+                        <option value="Medical Consultation">Medical Consultation</option>
+                        <option value="Engineering Design">Engineering Design</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-600 mb-1">Room Number</label>
+                    <input id="specRoomNumber" type="text" class="w-full bg-slate-100 border-2 border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-400" placeholder="e.g. Room 101">
+                </div>
+            </div>
+            <div id="specialistMsg" class="mt-4 text-sm text-center hidden"></div>
+            <button onclick="saveSpecialist()" class="w-full mt-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition">Save</button>
+        </div>
+    </div>
+
+    <!-- Customer Modal -->
+    <div id="customerModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-slate-800" id="customerModalTitle">Add Customer</h2>
+                <button onclick="closeCustomerModal()" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
+            </div>
+            <input type="hidden" id="customerEditId">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm text-slate-600 mb-1">Customer Number</label>
+                    <input id="custNumber" type="text" class="w-full bg-slate-100 border-2 border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-400">
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-600 mb-1">Password</label>
+                    <input id="custPassword" type="password" class="w-full bg-slate-100 border-2 border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-400" placeholder="Leave empty to keep current">
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-600 mb-1">Full Name</label>
+                    <input id="custName" type="text" class="w-full bg-slate-100 border-2 border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-400">
+                </div>
+            </div>
+            <div id="customerMsg" class="mt-4 text-sm text-center hidden"></div>
+            <button onclick="saveCustomer()" class="w-full mt-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition">Save</button>
+        </div>
+    </div>
+
+    <!-- Time Slot Modal -->
+    <div id="timeSlotModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-slate-800" id="timeSlotModalTitle">Add Time Slot</h2>
+                <button onclick="closeTimeSlotModal()" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
+            </div>
+            <input type="hidden" id="timeSlotEditId">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm text-slate-600 mb-1">Specialist</label>
+                    <select id="slotSpecialist" class="w-full bg-slate-100 border-2 border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-400">
+                        <option value="">Select specialist</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-600 mb-1">Date</label>
+                    <input id="slotDate" type="date" class="w-full bg-slate-100 border-2 border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-400">
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-600 mb-1">Time Slot</label>
+                    <select id="slotTime" class="w-full bg-slate-100 border-2 border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-400">
+                        <option value="">Select time</option>
+                        <option value="09:00-09:30">09:00-09:30</option>
+                        <option value="09:30-10:00">09:30-10:00</option>
+                        <option value="10:00-10:30">10:00-10:30</option>
+                        <option value="10:30-11:00">10:30-11:00</option>
+                        <option value="11:00-11:30">11:00-11:30</option>
+                        <option value="11:30-12:00">11:30-12:00</option>
+                        <option value="13:00-13:30">13:00-13:30</option>
+                        <option value="13:30-14:00">13:30-14:00</option>
+                        <option value="14:00-14:30">14:00-14:30</option>
+                        <option value="14:30-15:00">14:30-15:00</option>
+                        <option value="15:00-15:30">15:00-15:30</option>
+                        <option value="15:30-16:00">15:30-16:00</option>
+                        <option value="16:00-16:30">16:00-16:30</option>
+                        <option value="16:30-17:00">16:30-17:00</option>
+                        <option value="17:00-17:30">17:00-17:30</option>
+                        <option value="17:30-18:00">17:30-18:00</option>
+                    </select>
+                </div>
+            </div>
+            <div id="timeSlotMsg" class="mt-4 text-sm text-center hidden"></div>
+            <button onclick="saveTimeSlot()" class="w-full mt-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition">Save</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8081/api/admin';
+        let allSpecialists = [];
+        let allCustomers = [];
+        let allOrders = [];
+
+        const admin = JSON.parse(sessionStorage.getItem('admin') || 'null');
+        if (!admin) {
+            window.location.href = 'admin-login.html';
+        } else {
+            document.getElementById('adminName').textContent = admin.adminNumber;
+        }
+
+        function logout() {
+            sessionStorage.removeItem('admin');
+            window.location.href = 'admin-login.html';
+        }
+
+        function switchTab(tab) {
+            ['specialists', 'customers', 'orders', 'timeslots'].forEach(t => {
+                document.getElementById(`content-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('border-blue-500', 'text-blue-600');
+                document.getElementById(`tab-${t}`).classList.add('border-transparent', 'text-slate-500');
+            });
+            document.getElementById(`content-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).classList.remove('border-transparent', 'text-slate-500');
+            document.getElementById(`tab-${tab}`).classList.add('border-blue-500', 'text-blue-600');
+
+            if (tab === 'specialists') loadSpecialists();
+            else if (tab === 'customers') loadCustomers();
+            else if (tab === 'orders') loadOrders();
+            else if (tab === 'timeslots') loadTimeSlots();
+        }
+
+        // ==================== SPECIALISTS ====================
+
+        async function loadSpecialists() {
+            try {
+                const response = await fetch(`${API_BASE}/specialists`);
+                allSpecialists = await response.json();
+                renderSpecialists(allSpecialists);
+            } catch (e) {
+                console.error('Failed to load specialists');
+            }
+        }
+
+        function renderSpecialists(data) {
+            const tbody = document.getElementById('specialistsTable');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-slate-400">No specialists found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(s => `
+                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                    <td class="px-6 py-4 text-sm text-slate-700">${s.specialistNumber}</td>
+                    <td class="px-6 py-4 text-sm font-medium text-slate-800">${s.specialistName}</td>
+                    <td class="px-6 py-4 text-sm text-slate-600">${s.specialistExpertise}</td>
+                    <td class="px-6 py-4 text-sm text-slate-600">${s.roomNumber || '-'}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 text-xs rounded-full font-medium ${s.isActive === 1 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}">
+                            ${s.isActive === 1 ? 'Active' : 'Disabled'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="editSpecialist(${s.specialistID})" class="px-3 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition mr-2">Edit</button>
+                        <button onclick="toggleStatus('specialist', ${s.specialistID}, ${s.isActive})" class="px-3 py-1 text-xs ${s.isActive === 1 ? 'text-red-600 hover:bg-red-50' : 'text-emerald-600 hover:bg-emerald-50'} rounded transition mr-2">
+                            ${s.isActive === 1 ? 'Disable' : 'Enable'}
+                        </button>
+                        <button onclick="deleteSpecialist(${s.specialistID})" class="px-3 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function searchSpecialists() {
+            const query = document.getElementById('searchSpecialists').value.toLowerCase();
+            const filtered = allSpecialists.filter(s =>
+                s.specialistName.toLowerCase().includes(query) ||
+                s.specialistNumber.toLowerCase().includes(query) ||
+                s.specialistExpertise.toLowerCase().includes(query)
+            );
+            renderSpecialists(filtered);
+        }
+
+        function openSpecialistModal(id = null) {
+            document.getElementById('specialistEditId').value = '';
+            document.getElementById('specialistMsg').classList.add('hidden');
+            document.getElementById('specialistModalTitle').textContent = 'Add Specialist';
+            document.getElementById('specNumber').value = '';
+            document.getElementById('specNumber').disabled = false;
+            document.getElementById('specPassword').value = '';
+            document.getElementById('specName').value = '';
+            document.getElementById('specExpertise').value = 'IT & Digital';
+            document.getElementById('specRoomNumber').value = '';
+            document.getElementById('specialistModal').classList.remove('hidden');
+
+            if (id) {
+                const s = allSpecialists.find(x => x.specialistID === id);
+                if (s) {
+                    document.getElementById('specialistModalTitle').textContent = 'Edit Specialist';
+                    document.getElementById('specialistEditId').value = id;
+                    document.getElementById('specNumber').value = s.specialistNumber;
+                    document.getElementById('specNumber').disabled = true;
+                    document.getElementById('specName').value = s.specialistName;
+                    document.getElementById('specExpertise').value = s.specialistExpertise;
+                    document.getElementById('specRoomNumber').value = s.roomNumber || '';
+                }
+            }
+        }
+
+        function closeSpecialistModal() {
+            document.getElementById('specialistModal').classList.add('hidden');
+        }
+
+        async function saveSpecialist() {
+            const id = document.getElementById('specialistEditId').value;
+            const number = document.getElementById('specNumber').value.trim();
+            const password = document.getElementById('specPassword').value;
+            const name = document.getElementById('specName').value.trim();
+            const expertise = document.getElementById('specExpertise').value;
+            const roomNumber = document.getElementById('specRoomNumber').value.trim();
+            const msgEl = document.getElementById('specialistMsg');
+
+            if (!number || !name || expertise === '') {
+                msgEl.textContent = 'Number, name, and expertise are required';
+                msgEl.className = 'mt-4 text-sm text-center text-red-500';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+
+            const data = { specialistNumber: number, specialistName: name, specialistExpertise: expertise };
+            if (password) data.specialistPassword = password;
+            if (roomNumber) data.roomNumber = roomNumber;
+
+            try {
+                let response;
+                if (id) {
+                    response = await fetch(`${API_BASE}/specialists/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    data.specialistPassword = password || '123456';
+                    response = await fetch(`${API_BASE}/specialists`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                }
+
+                if (response.ok) {
+                    closeSpecialistModal();
+                    loadSpecialists();
+                } else {
+                    const err = await response.json();
+                    msgEl.textContent = err.message || 'Failed';
+                    msgEl.className = 'mt-4 text-sm text-center text-red-500';
+                    msgEl.classList.remove('hidden');
+                }
+            } catch (e) {
+                msgEl.textContent = 'Connection error';
+                msgEl.className = 'mt-4 text-sm text-center text-red-500';
+                msgEl.classList.remove('hidden');
+            }
+        }
+
+        function editSpecialist(id) {
+            openSpecialistModal(id);
+        }
+
+        async function deleteSpecialist(id) {
+            if (!confirm('Are you sure you want to delete this specialist?')) return;
+            await fetch(`${API_BASE}/specialists/${id}`, { method: 'DELETE' });
+            loadSpecialists();
+        }
+
+        async function toggleStatus(type, id, currentStatus) {
+            if (!confirm(`Are you sure you want to ${currentStatus === 1 ? 'disable' : 'enable'} this ${type}?`)) return;
+            await fetch(`${API_BASE}/${type}s/${id}/toggle`, { method: 'PUT' });
+            if (type === 'specialist') loadSpecialists();
+            else loadCustomers();
+        }
+
+        // ==================== CUSTOMERS ====================
+
+        async function loadCustomers() {
+            try {
+                const response = await fetch(`${API_BASE}/customers`);
+                allCustomers = await response.json();
+                renderCustomers(allCustomers);
+            } catch (e) {
+                console.error('Failed to load customers');
+            }
+        }
+
+        function renderCustomers(data) {
+            const tbody = document.getElementById('customersTable');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-slate-400">No customers found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(c => `
+                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                    <td class="px-6 py-4 text-sm text-slate-700">${c.customerNumber}</td>
+                    <td class="px-6 py-4 text-sm font-medium text-slate-800">${c.customerName}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 text-xs rounded-full font-medium ${c.isActive === 1 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}">
+                            ${c.isActive === 1 ? 'Active' : 'Disabled'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="editCustomer(${c.customerID})" class="px-3 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition mr-2">Edit</button>
+                        <button onclick="toggleStatus('customer', ${c.customerID}, ${c.isActive})" class="px-3 py-1 text-xs ${c.isActive === 1 ? 'text-red-600 hover:bg-red-50' : 'text-emerald-600 hover:bg-emerald-50'} rounded transition mr-2">
+                            ${c.isActive === 1 ? 'Disable' : 'Enable'}
+                        </button>
+                        <button onclick="deleteCustomer(${c.customerID})" class="px-3 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function searchCustomers() {
+            const query = document.getElementById('searchCustomers').value.toLowerCase();
+            const filtered = allCustomers.filter(c =>
+                c.customerName.toLowerCase().includes(query) ||
+                c.customerNumber.toLowerCase().includes(query)
+            );
+            renderCustomers(filtered);
+        }
+
+        function openCustomerModal(id = null) {
+            document.getElementById('customerEditId').value = '';
+            document.getElementById('customerMsg').classList.add('hidden');
+            document.getElementById('customerModalTitle').textContent = 'Add Customer';
+            document.getElementById('custNumber').value = '';
+            document.getElementById('custNumber').disabled = false;
+            document.getElementById('custPassword').value = '';
+            document.getElementById('custName').value = '';
+            document.getElementById('customerModal').classList.remove('hidden');
+
+            if (id) {
+                const c = allCustomers.find(x => x.customerID === id);
+                if (c) {
+                    document.getElementById('customerModalTitle').textContent = 'Edit Customer';
+                    document.getElementById('customerEditId').value = id;
+                    document.getElementById('custNumber').value = c.customerNumber;
+                    document.getElementById('custNumber').disabled = true;
+                    document.getElementById('custName').value = c.customerName;
+                }
+            }
+        }
+
+        function closeCustomerModal() {
+            document.getElementById('customerModal').classList.add('hidden');
+        }
+
+        async function saveCustomer() {
+            const id = document.getElementById('customerEditId').value;
+            const number = document.getElementById('custNumber').value.trim();
+            const password = document.getElementById('custPassword').value;
+            const name = document.getElementById('custName').value.trim();
+            const msgEl = document.getElementById('customerMsg');
+
+            if (!number || !name) {
+                msgEl.textContent = 'Number and name are required';
+                msgEl.className = 'mt-4 text-sm text-center text-red-500';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+
+            const data = { customerNumber: number, customerName: name };
+            if (password) data.customerPassword = password;
+
+            try {
+                let response;
+                if (id) {
+                    response = await fetch(`${API_BASE}/customers/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    data.customerPassword = password || '123456';
+                    response = await fetch(`${API_BASE}/customers`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                }
+
+                if (response.ok) {
+                    closeCustomerModal();
+                    loadCustomers();
+                } else {
+                    const err = await response.json();
+                    msgEl.textContent = err.message || 'Failed';
+                    msgEl.className = 'mt-4 text-sm text-center text-red-500';
+                    msgEl.classList.remove('hidden');
+                }
+            } catch (e) {
+                msgEl.textContent = 'Connection error';
+                msgEl.className = 'mt-4 text-sm text-center text-red-500';
+                msgEl.classList.remove('hidden');
+            }
+        }
+
+        function editCustomer(id) {
+            openCustomerModal(id);
+        }
+
+        async function deleteCustomer(id) {
+            if (!confirm('Are you sure you want to delete this customer?')) return;
+            await fetch(`${API_BASE}/customers/${id}`, { method: 'DELETE' });
+            loadCustomers();
+        }
+
+        // ==================== ORDERS ====================
+
+        async function loadOrders() {
+            try {
+                // Load stats
+                const statsRes = await fetch(`${API_BASE}/orders/stats`);
+                const stats = await statsRes.json();
+                document.getElementById('statTotal').textContent = stats.total || 0;
+                document.getElementById('statUnpaid').textContent = stats.unpaid || 0;
+                document.getElementById('statUnconfirmed').textContent = stats.unconfirmed || 0;
+                document.getElementById('statConfirmed').textContent = stats.confirmed || 0;
+                document.getElementById('statCompleted').textContent = stats.completed || 0;
+                document.getElementById('statCancelled').textContent = stats.cancelled || 0;
+                document.getElementById('statAutoCancelled').textContent = stats.autoCancelled || 0;
+
+                // Load orders
+                const response = await fetch(`${API_BASE}/orders`);
+                allOrders = await response.json();
+                renderOrders();
+            } catch (e) {
+                console.error('Failed to load orders', e);
+            }
+        }
+
+        function renderOrders() {
+            const tbody = document.getElementById('ordersTable');
+            if (allOrders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">No orders found</td></tr>';
+                return;
+            }
+
+            const orderStatusText = ['', 'Unpaid', 'Unconfirmed', 'Confirmed', 'Completed', 'Cancelled', 'Auto-Cancelled'];
+            const orderStatusColors = ['', 'bg-amber-100 text-amber-600', 'bg-yellow-100 text-yellow-600', 'bg-blue-100 text-blue-600', 'bg-emerald-100 text-emerald-600', 'bg-red-100 text-red-600', 'bg-red-100 text-red-600'];
+
+            tbody.innerHTML = allOrders.map(o => `
+                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                    <td class="px-4 py-4 text-sm text-slate-700">#${o.orderID}</td>
+                    <td class="px-4 py-4 text-sm text-slate-700">${o.customerName || '-'}</td>
+                    <td class="px-4 py-4 text-sm text-slate-700">${o.specialistName || '-'}</td>
+                    <td class="px-4 py-4 text-sm text-slate-600">${o.date || '-'} ${o.timeSlot || ''}</td>
+                    <td class="px-4 py-4 text-sm font-medium text-emerald-600">${o.paymentAmount || '$150.00'}</td>
+                    <td class="px-4 py-4">
+                        <span class="px-2 py-1 text-xs rounded-full font-medium ${orderStatusColors[o.orderStatus] || 'bg-slate-100 text-slate-600'}">
+                            ${orderStatusText[o.orderStatus] || 'Unknown'}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ==================== TIME SLOTS ====================
+
+        async function loadTimeSlots() {
+            try {
+                const response = await fetch(`${API_BASE}/availabilities`);
+                const slots = await response.json();
+                renderTimeSlots(slots);
+
+                // Load specialists for filter dropdown
+                const specRes = await fetch(`${API_BASE}/specialists`);
+                const specialists = await specRes.json();
+                const filterSelect = document.getElementById('filterSpecialist');
+                const modalSelect = document.getElementById('slotSpecialist');
+                const currentFilter = document.getElementById('filterSpecialist').value;
+
+                // Keep only the first option (All Specialists)
+                filterSelect.innerHTML = '<option value="">All Specialists</option>';
+                modalSelect.innerHTML = '<option value="">Select specialist</option>';
+
+                specialists.forEach(s => {
+                    filterSelect.innerHTML += `<option value="${s.specialistID}">${s.specialistName} (${s.specialistExpertise})</option>`;
+                    modalSelect.innerHTML += `<option value="${s.specialistID}">${s.specialistName} (${s.specialistExpertise})</option>`;
+                });
+
+                document.getElementById('filterSpecialist').value = currentFilter;
+            } catch (e) {
+                console.error('Failed to load time slots');
+            }
+        }
+
+        function renderTimeSlots(slots) {
+            const tbody = document.getElementById('timeSlotsTable');
+            const filterSpec = document.getElementById('filterSpecialist').value;
+            const filtered = filterSpec ? slots.filter(s => s.specialistID == filterSpec) : slots;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-slate-400">No time slots found</td></tr>';
+                return;
+            }
+
+            const slotStatusText = ['Available', 'Booked', 'Unavailable'];
+            const slotStatusColors = ['bg-emerald-100 text-emerald-600', 'bg-red-100 text-red-500', 'bg-yellow-100 text-yellow-600'];
+
+            tbody.innerHTML = filtered.map(s => `
+                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                    <td class="px-6 py-4 text-sm text-slate-700">${s.specialistName || 'N/A'}</td>
+                    <td class="px-6 py-4 text-sm text-slate-600">${s.date}</td>
+                    <td class="px-6 py-4 text-sm text-slate-600">${s.timeSlot}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 text-xs rounded-full font-medium ${slotStatusColors[s.isBooked] || 'bg-slate-100 text-slate-600'}">
+                            ${slotStatusText[s.isBooked] || 'Unknown'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="editTimeSlot(${s.availabilityID}, ${s.specialistID}, '${s.date}', '${s.timeSlot}')" class="px-3 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition mr-2">Edit</button>
+                        <button onclick="deleteTimeSlot(${s.availabilityID})" class="px-3 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openTimeSlotModal(id = null) {
+            document.getElementById('timeSlotEditId').value = '';
+            document.getElementById('timeSlotMsg').classList.add('hidden');
+            document.getElementById('timeSlotModalTitle').textContent = 'Add Time Slot';
+            document.getElementById('slotSpecialist').value = '';
+            document.getElementById('slotDate').value = '';
+            document.getElementById('slotTime').value = '';
+            loadTimeSlots();
+            document.getElementById('timeSlotModal').classList.remove('hidden');
+        }
+
+        function closeTimeSlotModal() {
+            document.getElementById('timeSlotModal').classList.add('hidden');
+        }
+
+        function editTimeSlot(id, specId, date, time) {
+            document.getElementById('timeSlotEditId').value = id;
+            document.getElementById('timeSlotModalTitle').textContent = 'Edit Time Slot';
+            loadTimeSlots().then(() => {
+                document.getElementById('slotSpecialist').value = specId;
+                document.getElementById('slotDate').value = date;
+                document.getElementById('slotTime').value = time;
+            });
+            document.getElementById('timeSlotModal').classList.remove('hidden');
+        }
+
+        async function saveTimeSlot() {
+            const id = document.getElementById('timeSlotEditId').value;
+            const specialistId = document.getElementById('slotSpecialist').value;
+            const date = document.getElementById('slotDate').value;
+            const timeSlot = document.getElementById('slotTime').value;
+            const msgEl = document.getElementById('timeSlotMsg');
+
+            if (!specialistId || !date || !timeSlot) {
+                msgEl.textContent = 'All fields are required';
+                msgEl.className = 'mt-4 text-sm text-center text-red-500';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+
+            const data = { specialistID: specialistId, date, timeSlot };
+
+            try {
+                let response;
+                if (id) {
+                    response = await fetch(`${API_BASE}/availabilities/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    response = await fetch(`${API_BASE}/availabilities`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                }
+
+                if (response.ok) {
+                    closeTimeSlotModal();
+                    loadTimeSlots();
+                } else {
+                    const err = await response.json();
+                    msgEl.textContent = err.message || 'Failed';
+                    msgEl.className = 'mt-4 text-sm text-center text-red-500';
+                    msgEl.classList.remove('hidden');
+                }
+            } catch (e) {
+                msgEl.textContent = 'Connection error';
+                msgEl.className = 'mt-4 text-sm text-center text-red-500';
+                msgEl.classList.remove('hidden');
+            }
+        }
+
+        async function deleteTimeSlot(id) {
+            if (!confirm('Are you sure you want to delete this time slot?')) return;
+            await fetch(`${API_BASE}/availabilities/${id}`, { method: 'DELETE' });
+            loadTimeSlots();
+        }
+
+        // Initial load
+        loadSpecialists();
+    </script>
+</body>
+</html>
