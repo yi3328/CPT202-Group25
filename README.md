@@ -1,130 +1,292 @@
 # Specialist Hub - CPT202 Group 25 Project
 
-欢迎来到 **Specialist Hub** 项目仓库！本项目是一个基于 Java Spring Boot 后端与 Tailwind CSS 前端的专家预约系统。
+A specialist appointment booking system built with Java Spring Boot and MySQL.
 
 ---
 
-## 🛠️ 环境准备
+## Table of Contents
 
-在运行项目之前，请确保您的电脑已安装以下基础环境：
-
-- **JDK 17**: [下载地址](https://www.google.com/search?q=https://www.oracle.com/java/technologies/downloads/%23java17)
-    
-- **MySQL 8.0+**: [下载地址](https://dev.mysql.com/downloads/installer/)
-    
-- **VS Code**: [下载地址](https://code.visualstudio.com/)
-    
+- [Technologies](#technologies)
+- [Prerequisites](#prerequisites)
+- [Project Structure](#project-structure)
+- [Setup Instructions](#setup-instructions)
+- [Test Accounts](#test-accounts)
+- [API Endpoints](#api-endpoints)
+- [Development](#development)
+- [Git Workflow](#git-workflow)
 
 ---
 
-## 📥 第一步：Git 安装与配置
+## Technologies
 
-如果您还没有安装 Git，请按照以下步骤操作：
+### Backend
 
-### 1. 安装 Git
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Java | 17 | Programming language |
+| Spring Boot | 3.2.5 | Backend framework |
+| Spring Data JPA | - | ORM and data access |
+| MySQL Connector | - | MySQL database driver |
 
-- **Windows**: 访问 [Git 官网](https://git-scm.com/download/win)，点击 **"Click here to download"**。下载后运行安装程序，一路点击 **Next** 即可。
-    
-- **Mac**: 在终端输入 `brew install git` 或访问 [官网下载](https://git-scm.com/download/mac)。
-    
+### Frontend
 
-### 2. 重启 VS Code
+| Technology | Purpose |
+|------------|---------|
+| HTML5 | Page structure |
+| JavaScript (ES6+) | Client-side logic |
+| Tailwind CSS | Styling |
 
-安装完成后，请**彻底关闭并重新打开 VS Code**，以确保系统识别 `git` 命令。
+### Database
 
-### 3. 配置身份信息
+| Technology | Version |
+|------------|---------|
+| MySQL | 8.0+ |
 
-打开 VS Code 终端，依次输入以下命令（替换引号内的内容为您的信息）：
+### Development Tools
 
-Bash
+| Tool | Purpose |
+|------|---------|
+| Maven | Dependency management and build |
+| VS Code | Code editor |
+| MySQL Workbench | Database management |
+
+---
+
+## Prerequisites
+
+Ensure the following are installed before setup:
+
+- **JDK 17** - [Download](https://www.oracle.com/java/technologies/downloads/#java17)
+- **MySQL 8.0+** - [Download](https://dev.mysql.com/downloads/installer/)
+- **Maven** (included via wrapper in project)
+- **Git** - [Download](https://git-scm.com/download/win)
+
+---
+
+## Project Structure
 
 ```
-git config --global user.email "您的GitHub邮箱"
-git config --global user.name "您的真实姓名"
+CPT202/
+├── specialist_order_system/          # Main project directory
+│   ├── src/main/java/com/example/backend/
+│   │   ├── controller/                # REST API controllers
+│   │   │   ├── AdminController.java
+│   │   │   ├── AppointmentController.java
+│   │   │   ├── AvailabilityController.java
+│   │   │   ├── CustomerController.java
+│   │   │   ├── PaymentController.java
+│   │   │   └── SpecialistController.java
+│   │   ├── model/                     # Entity classes
+│   │   │   ├── Admin.java
+│   │   │   ├── Appointment.java
+│   │   │   ├── Customer.java
+│   │   │   ├── Order.java
+│   │   │   ├── Payment.java
+│   │   │   ├── Specialist.java
+│   │   │   └── SpecialistAvailability.java
+│   │   ├── repository/                # Data access layer
+│   │   ├── scheduler/                # Scheduled tasks
+│   │   └── BackendApplication.java    # Main entry point
+│   ├── src/main/resources/
+│   │   ├── static/                    # Frontend static files
+│   │   │   ├── admin/                # Admin pages
+│   │   │   ├── customer/             # Customer pages
+│   │   │   └── specialist/            # Specialist pages
+│   │   ├── application.properties     # Configuration
+│   │   └── schema-admin.sql           # Database schema
+│   ├── src/test/                     # Unit tests
+│   ├── pom.xml                       # Maven configuration
+│   └── specialist_hub_backup.sql     # Full database backup
+└── README.md
 ```
 
 ---
 
-## 🚀 第二步：项目初始化与运行
+## Setup Instructions
 
-### 1. 拉取代码
+### 1. Clone the Repository
 
-在本地文件夹打开终端，运行以下命令获取项目：
-
-Bash
-
-```
-git clone https://github.com/yi3328/CPT202-Group25.git .
+```bash
+git clone https://github.com/yi3328/CPT202-Group25.git
+cd CPT202
 ```
 
-### 2. 导入数据库数据
+### 2. Database Setup
 
-1. 打开 **MySQL Workbench**。
-    
-2. 点击顶部菜单栏 **Server -> Data Import**。
-    
-3. 选择 **Import from Self-Contained File**。
-    
-4. 点击右侧的 `...` 按钮，选择项目路径下的 `backend/specialist_hub_backup.sql`。
-    
-5. 点击右下角的 **Start Import**。
-    
+#### Option A: Using MySQL Workbench
 
-### 3. 配置并启动后端 (Backend)
+1. Open **MySQL Workbench**
+2. Connect to your local MySQL instance
+3. Go to **Server → Data Import**
+4. Select **Import from Self-Contained File**
+5. Browse to `specialist_order_system/specialist_hub_backup.sql`
+6. Select target schema name: `specialist_hub`
+7. Click **Start Import**
 
-1. 在 VS Code 中打开 `backend` 文件夹。
-    
-2. 检查 `src/main/resources/application.properties`，确保数据库用户名和密码与您本地一致。
-    
-3. 在终端输入以下命令启动服务：
-    
-    - **Windows**: `.\mvnw clean spring-boot:run`
-        
-    - **Mac/Linux**: `./mvnw clean spring-boot:run`
-        
-    - _后端服务将运行在 `http://localhost:8081`_。
-        
+#### Option B: Using Command Line
 
-### 4. 运行前端 (Frontend)
+```bash
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS specialist_hub;"
+mysql -u root -p specialist_hub < specialist_order_system/specialist_hub_backup.sql
+```
 
-直接在浏览器中双击打开 `frontend/login.html` 即可开始测试系统。
+### 3. Configure Database Connection
 
----
+Edit `specialist_order_system/src/main/resources/application.properties`:
 
-## 🔑 测试账号信息
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/specialist_hub
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+```
 
-系统已预设 20 个客户账号及 5 位专家，供测试预约和支付流程使用：
+### 4. Run the Backend
 
-|**用户类型**|**账号 (Username)**|**密码 (Password)**|
-|---|---|---|
-|**客户 (Customer)**|`CUST001` 至 `CUST020`|`123456`|
-|**专家 (Specialist)**|`SPEC001` 至 `SPEC005`|`123456`|
+```bash
+cd specialist_order_system
 
----
+# Windows
+.\mvnw clean spring-boot:run
 
-## 📂 项目结构说明
+# macOS / Linux
+./mvnw clean spring-boot:run
+```
 
-- `/backend`: Spring Boot 后端代码，包含 Controller、Repository 及数据模型。
-    
-- `/frontend`: 纯 HTML/JS 前端页面，采用 Tailwind CSS 样式。
-    
-- `specialist_hub_backup.sql`: 数据库初始化脚本，包含表结构及测试数据。
-    
+The backend will start at **http://localhost:8080**.
+
+### 5. Access the Frontend
+
+Open the following file in your browser:
+- Login page: `specialist_order_system/src/main/resources/static/index.html`
+
+Or access via the running server:
+- http://localhost:8080
 
 ---
 
-## ⚠️ 团队协作提示
+## Test Accounts
 
-- **代码同步**：在开始编写代码前，请务必先执行 `git pull origin main` 以同步最新进度。
-    
-- **提交更改**：
-    
-    Bash
-    
-    ```
-    git add .
-    git commit -m "描述您的修改内容"
-    git push origin main
-    ```
-    
-- **退出登录**：前端已集成 **Logout** 功能，点击后会清除本地缓存并返回登录页面。
+| Role | Username | Password |
+|------|-----------|----------|
+| Customer | `CUST001` - `CUST020` | `123456` |
+| Specialist | `SPEC001` - `SPEC005` | `123456` |
+| Admin | `admin001` | `123456` |
+
+---
+
+## API Endpoints
+
+### Customer APIs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/customer/login` | Customer login |
+| GET | `/api/customer/{id}` | Get customer details |
+| GET | `/api/customer/appointments/{customerId}` | Get customer appointments |
+
+### Specialist APIs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/specialist/login` | Specialist login |
+| GET | `/api/specialist/{id}` | Get specialist details |
+| GET | `/api/specialist/availability/{id}` | Get specialist availability |
+
+### Appointment APIs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/appointment/create` | Create appointment |
+| GET | `/api/appointment/{id}` | Get appointment details |
+| PUT | `/api/appointment/{id}/status` | Update appointment status |
+
+### Payment APIs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/payment/process` | Process payment |
+| GET | `/api/payment/{orderId}` | Get payment status |
+
+### Admin APIs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/admin/login` | Admin login |
+| GET | `/api/admin/specialists` | List all specialists |
+| GET | `/api/admin/customers` | List all customers |
+
+---
+
+## Development
+
+### Building the Project
+
+```bash
+cd specialist_order_system
+.\mvnw clean package
+```
+
+### Running Tests
+
+```bash
+.\mvnw test
+```
+
+### Database Schema Updates
+
+To apply schema updates to an existing database:
+
+1. Open `schema-admin.sql` in MySQL Workbench
+2. Execute the SQL statements against your database
+
+---
+
+## Git Workflow
+
+### Before Starting Work
+
+Always pull the latest changes before making modifications:
+
+```bash
+git pull origin main
+```
+
+### Committing Changes
+
+```bash
+git add .
+git commit -m "Description of changes"
+git push origin main
+```
+
+### Collaboration Guidelines
+
+1. Create a new branch for new features: `git checkout -b feature-name`
+2. Commit frequently with clear messages
+3. Pull main branch before merging: `git pull origin main`
+4. Resolve merge conflicts locally before pushing
+
+---
+
+## Troubleshooting
+
+### Port 8080 Already in Use
+
+Edit `src/main/resources/application.properties` and change the port:
+
+```properties
+server.port=8081
+```
+
+### Database Connection Failed
+
+1. Verify MySQL service is running
+2. Check username and password in `application.properties`
+3. Ensure the database `specialist_hub` exists
+
+### Maven Build Fails
+
+```bash
+.\mvnw clean install -U
+```
+
+---
+
+## License
+
+This project was developed by **CPT202 Group 25**.
